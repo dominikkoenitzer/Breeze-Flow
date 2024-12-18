@@ -7,16 +7,14 @@
 ## Key Features
 
 ### 1. Quick Task Manager
-- Add tasks with one tap or voice input (e.g., “Buy milk”).
+- Add tasks with one tap
 - Simple reminders to stay on track with deadlines.
 
 ### 2. Smart Grocery List
 - Create and manage shopping lists.
-- Sync with online stores (like Amazon, Walmart, or Instacart) to reorder items with ease.
 
 ### 3. Daily Planner
 - A clean, visual timeline of your day.
-- Integrates with Google Calendar or iOS Calendar.
 
 ### 4. Budget Helper
 - Track small expenses directly in the app.
