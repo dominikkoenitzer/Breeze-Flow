@@ -10,25 +10,18 @@
 - Add tasks with one tap
 - Simple reminders to stay on track with deadlines.
 
-### 2. Smart Grocery List
-- Create and manage shopping lists.
-
-### 3. Daily Planner
+### 2. Daily Planner
 - A clean, visual timeline of your day.
 
-### 4. Budget Helper
-- Track small expenses directly in the app.
-- Basic insights on how much you’re spending weekly.
-
-### 5. One-Click Reminders
+### 3. One-Click Reminders
 - Set reminders for bills, appointments, or online deliveries.
 - Includes recurring reminders for subscriptions or routine payments.
 
-### 6. Focus Mode
+### 4. Focus Mode
 - A simple toggle that blocks distractions like social media for a set period.
 - Includes a countdown timer to help you work uninterrupted.
 
-### 7. Quick Wellness Check-Ins
+### 5. Quick Wellness Check-Ins
 - Gentle nudges to drink water, stretch, or take a short break.
 - A small journal for tracking how you feel each day.
 
@@ -37,5 +30,5 @@
 ## Why It’s Useful
 
 - **Simple to Use**: Focuses only on essentials like tasks, reminders, and planning.
-- **Saves Time**: Handles repetitive tasks like grocery lists or bill tracking with ease.
 - **Lightweight**: No overwhelming features or learning curve.
+- **Saves Time**: Handles repetitive tasks.
