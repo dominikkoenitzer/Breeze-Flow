@@ -8,7 +8,6 @@ Breeze Flow is a productivity and task management application built with Spring 
 - Focus Session Tracking
 - Event Management
 - User Settings Configuration
-- Test Management System
 
 ## Tech Stack
 
