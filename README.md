@@ -47,8 +47,13 @@ mvn clean install
 ```bash
 mvn spring-boot:run
 ```
+MongoDB:
+   - Standard-Port: 27017
+   - Datenbank: breeze_flow
 
-The application will start running at `http://localhost:8080`
+Usage:
+   - Backend: http://localhost:8080
+   - Frontend: http://localhost:5173
 
 ## Contributing
 
