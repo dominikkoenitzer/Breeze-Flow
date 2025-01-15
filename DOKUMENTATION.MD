@@ -171,7 +171,7 @@ DELETE /api/events/{id}
 
 2. Installation:
 ```bash
-git clone https://github.com/YOUR_USERNAME/Breeze-Flow.git
+git clone https://github.com/Punds101/Breeze-Flow.git
 cd Breeze-Flow-Backend
 mvn clean install
 mvn spring-boot:run
