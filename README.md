@@ -48,7 +48,7 @@ mvn spring-boot:run
 ```
 MongoDB:
    - Standard-Port: 27017
-   - Datenbank: breeze_flow
+   - Database: breeze_flow
 
 Usage:
    - Backend: http://localhost:8080
