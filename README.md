@@ -29,7 +29,7 @@ Breeze Flow is a productivity and task management application built with Spring 
 
 1. Clone the repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/Breeze-Flow.git
+git clone https://github.com/Punds101/Breeze-Flow.git
 ```
 
 2. Navigate to the backend directory
