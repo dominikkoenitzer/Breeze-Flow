@@ -15,7 +15,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * - Startet den Spring Boot ApplicationContext
  * - Aktiviert Component-Scanning für alle Unterpackages
  * - Lädt die Konfiguration aus application.properties
- * - Initialisiert die MongoDB-Verbindung
  * - Startet den eingebetteten Tomcat-Server
  * 
  * Technische Details:

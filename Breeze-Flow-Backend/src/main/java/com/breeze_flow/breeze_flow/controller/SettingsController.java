@@ -1,8 +1,6 @@
 package com.breeze_flow.breeze_flow.controller;
 
 import com.breeze_flow.breeze_flow.model.Settings;
-import com.breeze_flow.breeze_flow.repository.SettingsRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,13 +27,6 @@ import org.springframework.web.bind.annotation.*;
 public class SettingsController {
 
     /**
-     * MongoDB-Repository für Einstellungen
-     * Verwaltet die Persistenz der Benutzereinstellungen
-     */
-    @Autowired
-    private SettingsRepository settingsRepository;
-
-    /**
      * Ruft die aktuellen Einstellungen ab
      * 
      * GET /api/settings
@@ -60,9 +51,7 @@ public class SettingsController {
      */
     @GetMapping
     public ResponseEntity<Settings> getSettings() {
-        Settings settings = settingsRepository.findFirstByOrderByIdAsc()
-                .orElse(new Settings()); // Default-Einstellungen wenn keine existieren
-        return ResponseEntity.ok(settings);
+        return ResponseEntity.ok(new Settings()); // Rückgabe von Default-Einstellungen
     }
 
     /**
@@ -87,13 +76,6 @@ public class SettingsController {
      */
     @PutMapping
     public ResponseEntity<Settings> updateSettings(@RequestBody Settings settings) {
-        Settings existingSettings = settingsRepository.findFirstByOrderByIdAsc()
-                .orElse(new Settings());
-        
-        // ID beibehalten um Update statt Insert durchzuführen
-        settings.setId(existingSettings.getId());
-        
-        Settings updatedSettings = settingsRepository.save(settings);
-        return ResponseEntity.ok(updatedSettings);
+        return ResponseEntity.ok(settings); // Rückgabe der aktualisierten Einstellungen
     }
-} 
+}

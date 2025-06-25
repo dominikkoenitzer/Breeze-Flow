@@ -8,4 +8,4 @@ import java.util.List;
 public interface EventRepository extends MongoRepository<Event, String> {
     List<Event> findByDateBetween(LocalDateTime start, LocalDateTime end);
     List<Event> findByStatus(String status);
-} 
+}

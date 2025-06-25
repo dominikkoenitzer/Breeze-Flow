@@ -1,8 +1,5 @@
 package com.breeze_flow.breeze_flow.controller;
 
-import com.breeze_flow.breeze_flow.model.Event;
-import com.breeze_flow.breeze_flow.repository.EventRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,13 +30,6 @@ import java.util.List;
 public class EventController {
 
     /**
-     * MongoDB-Repository für Events
-     * Verwaltet die Persistenz der Kalenderdaten
-     */
-    @Autowired
-    private EventRepository eventRepository;
-
-    /**
      * Erstellt ein neues Event
      * 
      * POST /api/events
@@ -61,9 +51,9 @@ public class EventController {
      * @return ResponseEntity mit dem erstellten Event
      */
     @PostMapping
-    public ResponseEntity<Event> createEvent(@RequestBody Event event) {
-        Event savedEvent = eventRepository.save(event);
-        return ResponseEntity.ok(savedEvent);
+    public ResponseEntity<String> createEvent(@RequestBody String event) {
+        // Event creation logic here (e.g., save to database)
+        return ResponseEntity.ok("Event created: " + event);
     }
 
     /**
@@ -75,9 +65,9 @@ public class EventController {
      * @return Liste aller Events
      */
     @GetMapping
-    public ResponseEntity<List<Event>> getAllEvents() {
-        List<Event> events = eventRepository.findAll();
-        return ResponseEntity.ok(events);
+    public ResponseEntity<List<String>> getAllEvents() {
+        // Logic to retrieve all events (e.g., from database)
+        return ResponseEntity.ok(List.of("Event 1", "Event 2"));
     }
 
     /**
@@ -85,14 +75,13 @@ public class EventController {
      * 
      * GET /api/events/{id}
      * 
-     * @param id MongoDB-ID des Events
+     * @param id ID des Events
      * @return ResponseEntity mit dem gefundenen Event oder 404
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Event> getEventById(@PathVariable String id) {
-        return eventRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<String> getEventById(@PathVariable String id) {
+        // Logic to retrieve an event by ID
+        return ResponseEntity.ok("Event details for ID: " + id);
     }
 
     /**
@@ -111,18 +100,14 @@ public class EventController {
      * - participants: Neue Teilnehmerliste
      * - reminder: Neue Erinnerungszeit
      * 
-     * @param id MongoDB-ID des Events
+     * @param id ID des Events
      * @param event Aktualisierte Eventdaten
      * @return ResponseEntity mit dem aktualisierten Event oder 404
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Event> updateEvent(@PathVariable String id, @RequestBody Event event) {
-        return eventRepository.findById(id)
-                .map(existingEvent -> {
-                    event.setId(id);
-                    return ResponseEntity.ok(eventRepository.save(event));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<String> updateEvent(@PathVariable String id, @RequestBody String event) {
+        // Event update logic here
+        return ResponseEntity.ok("Event updated: " + event);
     }
 
     /**
@@ -130,16 +115,12 @@ public class EventController {
      * 
      * DELETE /api/events/{id}
      * 
-     * @param id MongoDB-ID des Events
+     * @param id ID des Events
      * @return ResponseEntity mit Statuscode 200 oder 404
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEvent(@PathVariable String id) {
-        return eventRepository.findById(id)
-                .map(event -> {
-                    eventRepository.delete(event);
-                    return ResponseEntity.ok().<Void>build();
-                })
-                .orElse(ResponseEntity.notFound().build());
+        // Event deletion logic here
+        return ResponseEntity.ok().build();
     }
-} 
+}

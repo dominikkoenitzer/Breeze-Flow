@@ -1,12 +1,8 @@
 package com.breeze_flow.breeze_flow.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
-@Document(collection = "focus_sessions")
 public class FocusSession {
-    @Id
     private String id;
     private int duration; // in seconds
     private boolean isBreak;
@@ -66,4 +62,4 @@ public class FocusSession {
     public void setStatus(String status) {
         this.status = status;
     }
-} 
+}

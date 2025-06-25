@@ -1,12 +1,8 @@
 package com.breeze_flow.breeze_flow.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
-@Document(collection = "events")
 public class Event {
-    @Id
     private String id;
     private String title;
     private LocalDateTime date;
@@ -75,4 +71,4 @@ public class Event {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-} 
+}

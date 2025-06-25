@@ -1,0 +1,9 @@
+Files to delete for removing MongoDB backend:
+- src/main/java/com/breeze_flow/breeze_flow/model/TestModel.java
+- src/main/java/com/breeze_flow/breeze_flow/model/Task.java
+- src/main/java/com/breeze_flow/breeze_flow/model/Settings.java
+- src/main/java/com/breeze_flow/breeze_flow/repository/TestRepository.java
+- src/main/java/com/breeze_flow/breeze_flow/repository/TaskRepository.java
+- src/main/java/com/breeze_flow/breeze_flow/repository/SettingsRepository.java
+
+Also remove MongoDB dependencies from pom.xml and related properties from application.properties.

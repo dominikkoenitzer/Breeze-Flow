@@ -1,8 +1,6 @@
 package com.breeze_flow.breeze_flow.controller;
 
 import com.breeze_flow.breeze_flow.model.Task;
-import com.breeze_flow.breeze_flow.repository.TaskRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,13 +31,6 @@ import java.util.List;
 public class TaskController {
 
     /**
-     * MongoDB-Repository für Aufgaben
-     * Verwaltet den Datenbankzugriff für Task-Objekte
-     */
-    @Autowired
-    private TaskRepository taskRepository;
-
-    /**
      * Erstellt eine neue Aufgabe
      * 
      * POST /api/tasks
@@ -57,8 +48,7 @@ public class TaskController {
      */
     @PostMapping
     public ResponseEntity<Task> createTask(@RequestBody Task task) {
-        Task savedTask = taskRepository.save(task);
-        return ResponseEntity.ok(savedTask);
+        return ResponseEntity.ok(task);
     }
 
     /**
@@ -71,8 +61,7 @@ public class TaskController {
      */
     @GetMapping
     public ResponseEntity<List<Task>> getAllTasks() {
-        List<Task> tasks = taskRepository.findAll();
-        return ResponseEntity.ok(tasks);
+        return ResponseEntity.ok(List.of());
     }
 
     /**
@@ -80,14 +69,12 @@ public class TaskController {
      * 
      * GET /api/tasks/{id}
      * 
-     * @param id MongoDB-ID der Aufgabe
+     * @param id ID der Aufgabe
      * @return ResponseEntity mit der gefundenen Aufgabe oder 404
      */
     @GetMapping("/{id}")
     public ResponseEntity<Task> getTaskById(@PathVariable String id) {
-        return taskRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.notFound().build();
     }
 
     /**
@@ -104,18 +91,13 @@ public class TaskController {
      * - priority: Neue Priorität
      * - tags: Neue Tags
      * 
-     * @param id MongoDB-ID der Aufgabe
+     * @param id ID der Aufgabe
      * @param task Aktualisierte Aufgabendaten
      * @return ResponseEntity mit der aktualisierten Aufgabe oder 404
      */
     @PutMapping("/{id}")
     public ResponseEntity<Task> updateTask(@PathVariable String id, @RequestBody Task task) {
-        return taskRepository.findById(id)
-                .map(existingTask -> {
-                    task.setId(id);
-                    return ResponseEntity.ok(taskRepository.save(task));
-                })
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.notFound().build();
     }
 
     /**
@@ -123,16 +105,11 @@ public class TaskController {
      * 
      * DELETE /api/tasks/{id}
      * 
-     * @param id MongoDB-ID der Aufgabe
+     * @param id ID der Aufgabe
      * @return ResponseEntity mit Statuscode 200 oder 404
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable String id) {
-        return taskRepository.findById(id)
-                .map(task -> {
-                    taskRepository.delete(task);
-                    return ResponseEntity.ok().<Void>build();
-                })
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.notFound().build();
     }
-} 
+}

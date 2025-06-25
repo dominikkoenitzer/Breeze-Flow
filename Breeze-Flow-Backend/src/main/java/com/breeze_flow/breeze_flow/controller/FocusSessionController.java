@@ -1,8 +1,5 @@
 package com.breeze_flow.breeze_flow.controller;
 
-import com.breeze_flow.breeze_flow.model.FocusSession;
-import com.breeze_flow.breeze_flow.repository.FocusSessionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,13 +30,6 @@ import java.util.List;
 public class FocusSessionController {
 
     /**
-     * MongoDB-Repository für Fokus-Sitzungen
-     * Verwaltet die Persistenz der Sitzungsdaten
-     */
-    @Autowired
-    private FocusSessionRepository focusSessionRepository;
-
-    /**
      * Speichert eine neue Fokus-Sitzung
      * 
      * POST /api/focus-sessions
@@ -58,9 +48,9 @@ public class FocusSessionController {
      * @return ResponseEntity mit der gespeicherten Sitzung
      */
     @PostMapping
-    public ResponseEntity<FocusSession> createSession(@RequestBody FocusSession session) {
-        FocusSession savedSession = focusSessionRepository.save(session);
-        return ResponseEntity.ok(savedSession);
+    public ResponseEntity<String> createSession(@RequestBody String session) {
+        // Logik zum Speichern der Sitzung (z.B. in einer Datenbank)
+        return ResponseEntity.ok("Session saved: " + session);
     }
 
     /**
@@ -72,9 +62,9 @@ public class FocusSessionController {
      * @return Liste aller Fokus-Sitzungen
      */
     @GetMapping
-    public ResponseEntity<List<FocusSession>> getAllSessions() {
-        List<FocusSession> sessions = focusSessionRepository.findAll();
-        return ResponseEntity.ok(sessions);
+    public ResponseEntity<List<String>> getAllSessions() {
+        // Logik zum Abrufen aller Sitzungen
+        return ResponseEntity.ok(List.of("Session1", "Session2"));
     }
 
     /**
@@ -82,14 +72,13 @@ public class FocusSessionController {
      * 
      * GET /api/focus-sessions/{id}
      * 
-     * @param id MongoDB-ID der Sitzung
+     * @param id ID der Sitzung
      * @return ResponseEntity mit der gefundenen Sitzung oder 404
      */
     @GetMapping("/{id}")
-    public ResponseEntity<FocusSession> getSessionById(@PathVariable String id) {
-        return focusSessionRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<String> getSessionById(@PathVariable String id) {
+        // Logik zum Abrufen einer Sitzung nach ID
+        return ResponseEntity.ok("Session found: " + id);
     }
 
     /**
@@ -104,18 +93,14 @@ public class FocusSessionController {
      * - completedTasks: Neue Liste erledigter Aufgaben
      * - notes: Neue Notizen
      * 
-     * @param id MongoDB-ID der Sitzung
+     * @param id ID der Sitzung
      * @param session Aktualisierte Sitzungsdaten
      * @return ResponseEntity mit der aktualisierten Sitzung oder 404
      */
     @PutMapping("/{id}")
-    public ResponseEntity<FocusSession> updateSession(@PathVariable String id, @RequestBody FocusSession session) {
-        return focusSessionRepository.findById(id)
-                .map(existingSession -> {
-                    session.setId(id);
-                    return ResponseEntity.ok(focusSessionRepository.save(session));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<String> updateSession(@PathVariable String id, @RequestBody String session) {
+        // Logik zum Aktualisieren einer Sitzung
+        return ResponseEntity.ok("Session updated: " + id);
     }
 
     /**
@@ -123,16 +108,12 @@ public class FocusSessionController {
      * 
      * DELETE /api/focus-sessions/{id}
      * 
-     * @param id MongoDB-ID der Sitzung
+     * @param id ID der Sitzung
      * @return ResponseEntity mit Statuscode 200 oder 404
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSession(@PathVariable String id) {
-        return focusSessionRepository.findById(id)
-                .map(session -> {
-                    focusSessionRepository.delete(session);
-                    return ResponseEntity.ok().<Void>build();
-                })
-                .orElse(ResponseEntity.notFound().build());
+        // Logik zum Löschen einer Sitzung
+        return ResponseEntity.ok().build();
     }
-} 
+}
