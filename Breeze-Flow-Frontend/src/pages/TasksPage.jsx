@@ -55,6 +55,8 @@ import {
   StatHelpText,
   Card,
   CardBody,
+  CardHeader,
+  CardFooter,
   useBreakpointValue,
   SlideFade,
   SimpleGrid,
@@ -343,452 +345,462 @@ function TasksPage() {
   }
 
   return (
-    <VStack spacing={8} align="stretch">
-      <Box>
-        <Heading size="lg" mb={2}>
-          Tasks
-        </Heading>
-        <Text color={mutedColor}>Manage your tasks and stay organized</Text>
-      </Box>
-
-      <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
-        <Card bg={bg}>
+    <>
+      <Box maxW="900px" mx="auto" mt={8} p={{ base: 2, md: 6 }}>
+        <Card boxShadow="xl" borderRadius="2xl" p={6}>
+          <CardHeader>
+            <Heading size="lg" mb={2}>Your Tasks</Heading>
+            <Text color="gray.500" fontSize="md">Organize, prioritize, and track your tasks easily.</Text>
+          </CardHeader>
           <CardBody>
-            <Stat>
-              <StatLabel>Total Tasks</StatLabel>
-              <StatNumber>{taskStats.total}</StatNumber>
-              <StatHelpText>
-                {taskStats.completed} completed
-              </StatHelpText>
-              <Progress value={taskStats.progress} size="sm" colorScheme="green" mt={2} />
-            </Stat>
-          </CardBody>
-        </Card>
-        <Card bg={bg}>
-          <CardBody>
-            <Stat>
-              <StatLabel>Active Tasks</StatLabel>
-              <StatNumber>{taskStats.total - taskStats.completed}</StatNumber>
-              <StatHelpText>
-                {taskStats.high} high priority
-              </StatHelpText>
-              <Progress value={(taskStats.high / taskStats.total) * 100} size="sm" colorScheme="red" mt={2} />
-            </Stat>
-          </CardBody>
-        </Card>
-        <Card bg={bg}>
-          <CardBody>
-            <Stat>
-              <StatLabel>Completion Rate</StatLabel>
-              <StatNumber>{taskStats.progress.toFixed(1)}%</StatNumber>
-              <StatHelpText>
-                Overall progress
-              </StatHelpText>
-              <Progress value={taskStats.progress} size="sm" colorScheme="blue" mt={2} />
-            </Stat>
-          </CardBody>
-        </Card>
-      </SimpleGrid>
+            <VStack spacing={8} align="stretch">
+              <Box>
+                <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
+                  <Card bg={bg}>
+                    <CardBody>
+                      <Stat>
+                        <StatLabel>Total Tasks</StatLabel>
+                        <StatNumber>{taskStats.total}</StatNumber>
+                        <StatHelpText>
+                          {taskStats.completed} completed
+                        </StatHelpText>
+                        <Progress value={taskStats.progress} size="sm" colorScheme="green" mt={2} />
+                      </Stat>
+                    </CardBody>
+                  </Card>
+                  <Card bg={bg}>
+                    <CardBody>
+                      <Stat>
+                        <StatLabel>Active Tasks</StatLabel>
+                        <StatNumber>{taskStats.total - taskStats.completed}</StatNumber>
+                        <StatHelpText>
+                          {taskStats.high} high priority
+                        </StatHelpText>
+                        <Progress value={(taskStats.high / taskStats.total) * 100} size="sm" colorScheme="red" mt={2} />
+                      </Stat>
+                    </CardBody>
+                  </Card>
+                  <Card bg={bg}>
+                    <CardBody>
+                      <Stat>
+                        <StatLabel>Completion Rate</StatLabel>
+                        <StatNumber>{taskStats.progress.toFixed(1)}%</StatNumber>
+                        <StatHelpText>
+                          Overall progress
+                        </StatHelpText>
+                        <Progress value={taskStats.progress} size="sm" colorScheme="blue" mt={2} />
+                      </Stat>
+                    </CardBody>
+                  </Card>
+                </SimpleGrid>
+              </Box>
 
-      <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-        <VStack spacing={4}>
-          <HStack w="100%" spacing={4}>
-            <Input
-              placeholder="Search tasks..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              flex={1}
-            />
-            <Input
-              placeholder="Add a new task..."
-              value={newTaskTitle}
-              onChange={(e) => setNewTaskTitle(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  handleAddTask();
-                }
-              }}
-              flex={2}
-            />
-            <IconButton
-              icon={<FaPlus />}
-              onClick={handleAddTask}
-              colorScheme="blue"
-              aria-label="Add task"
-            />
-          </HStack>
+              <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+                <VStack spacing={4}>
+                  <HStack w="100%" spacing={4}>
+                    <Input
+                      placeholder="Search tasks..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      flex={1}
+                    />
+                    <Input
+                      placeholder="Add a new task..."
+                      value={newTaskTitle}
+                      onChange={(e) => setNewTaskTitle(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleAddTask();
+                        }
+                      }}
+                      flex={2}
+                    />
+                    <IconButton
+                      icon={<FaPlus />}
+                      onClick={handleAddTask}
+                      colorScheme="blue"
+                      aria-label="Add task"
+                    />
+                  </HStack>
 
-          <Tabs w="100%" isFitted variant="enclosed" index={selectedTab} onChange={setSelectedTab}>
-            <TabList mb="1em">
-              <Tab>All ({tasks.length})</Tab>
-              <Tab>Active ({tasks.filter(t => !t.completed).length})</Tab>
-              <Tab>Completed ({tasks.filter(t => t.completed).length})</Tab>
-            </TabList>
+                  <Tabs w="100%" isFitted variant="enclosed" index={selectedTab} onChange={setSelectedTab}>
+                    <TabList mb="1em">
+                      <Tab>All ({tasks.length})</Tab>
+                      <Tab>Active ({tasks.filter(t => !t.completed).length})</Tab>
+                      <Tab>Completed ({tasks.filter(t => t.completed).length})</Tab>
+                    </TabList>
 
-            <TabPanels>
-              <TabPanel p={0}>
-                <List spacing={3} w="100%">
-                  {filteredTasks.map((task) => (
-                    <MotionListItem
-                      key={task.id}
-                      layout
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Card
-                        bg={cardBg}
-                        _hover={{ shadow: 'md', transform: 'translateY(-2px)' }}
-                        transition="all 0.2s"
-                      >
-                        <CardBody>
-                          <VStack align="stretch" spacing={2}>
-                            <HStack justify="space-between">
-                              <HStack flex={1} spacing={4}>
-                                <Checkbox
-                                  isChecked={task.completed}
-                                  onChange={() => handleToggleTask(task.id)}
-                                  size="lg"
-                                />
-                                <VStack align="start" spacing={1}>
-                                  <HStack>
-                                    <Text
-                                      fontSize="lg"
-                                      fontWeight="medium"
-                                      textDecoration={
-                                        task.completed ? 'line-through' : 'none'
-                                      }
-                                      color={task.completed ? mutedColor : textColor}
-                                    >
-                                      {task.title}
-                                    </Text>
-                                    <Tag
-                                      size="sm"
-                                      variant="subtle"
-                                      colorScheme={getPriorityColor(task.priority)}
-                                    >
-                                      <TagLeftIcon as={getPriorityIcon(task.priority)} />
-                                      <TagLabel>{task.priority}</TagLabel>
-                                    </Tag>
-                                  </HStack>
-                                  {task.dueDate && (
-                                    <HStack fontSize="sm" color={mutedColor}>
-                                      <FaCalendarAlt />
-                                      <Text>Due: {new Date(task.dueDate).toLocaleDateString()}</Text>
+                    <TabPanels>
+                      <TabPanel p={0}>
+                        <List spacing={3} w="100%">
+                          {filteredTasks.map((task) => (
+                            <MotionListItem
+                              key={task.id}
+                              layout
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -20 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <Card
+                                bg={cardBg}
+                                _hover={{ shadow: 'md', transform: 'translateY(-2px)' }}
+                                transition="all 0.2s"
+                              >
+                                <CardBody>
+                                  <VStack align="stretch" spacing={2}>
+                                    <HStack justify="space-between">
+                                      <HStack flex={1} spacing={4}>
+                                        <Checkbox
+                                          isChecked={task.completed}
+                                          onChange={() => handleToggleTask(task.id)}
+                                          size="lg"
+                                        />
+                                        <VStack align="start" spacing={1}>
+                                          <HStack>
+                                            <Text
+                                              fontSize="lg"
+                                              fontWeight="medium"
+                                              textDecoration={
+                                                task.completed ? 'line-through' : 'none'
+                                              }
+                                              color={task.completed ? mutedColor : textColor}
+                                            >
+                                              {task.title}
+                                            </Text>
+                                            <Tag
+                                              size="sm"
+                                              variant="subtle"
+                                              colorScheme={getPriorityColor(task.priority)}
+                                            >
+                                              <TagLeftIcon as={getPriorityIcon(task.priority)} />
+                                              <TagLabel>{task.priority}</TagLabel>
+                                            </Tag>
+                                          </HStack>
+                                          {task.dueDate && (
+                                            <HStack fontSize="sm" color={mutedColor}>
+                                              <FaCalendarAlt />
+                                              <Text>Due: {new Date(task.dueDate).toLocaleDateString()}</Text>
+                                            </HStack>
+                                          )}
+                                        </VStack>
+                                      </HStack>
+                                      <HStack>
+                                        <IconButton
+                                          icon={expandedTask === task.id ? <FaChevronUp /> : <FaChevronDown />}
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleExpandTask(task.id)}
+                                          aria-label="Toggle details"
+                                        />
+                                        <Menu>
+                                          <MenuButton
+                                            as={IconButton}
+                                            icon={<FaEllipsisV />}
+                                            variant="ghost"
+                                            size="sm"
+                                          />
+                                          <MenuList>
+                                            <MenuItem
+                                              icon={<FaEdit />}
+                                              onClick={() => handleEditTask(task)}
+                                            >
+                                              Edit
+                                            </MenuItem>
+                                            <MenuItem
+                                              icon={<FaTrash />}
+                                              onClick={() => {
+                                                setTaskToDelete(task);
+                                                onAlertOpen();
+                                              }}
+                                              color="red.500"
+                                            >
+                                              Delete
+                                            </MenuItem>
+                                          </MenuList>
+                                        </Menu>
+                                      </HStack>
                                     </HStack>
-                                  )}
-                                </VStack>
-                              </HStack>
-                              <HStack>
-                                <IconButton
-                                  icon={expandedTask === task.id ? <FaChevronUp /> : <FaChevronDown />}
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleExpandTask(task.id)}
-                                  aria-label="Toggle details"
-                                />
-                                <Menu>
-                                  <MenuButton
-                                    as={IconButton}
-                                    icon={<FaEllipsisV />}
-                                    variant="ghost"
-                                    size="sm"
-                                  />
-                                  <MenuList>
-                                    <MenuItem
-                                      icon={<FaEdit />}
-                                      onClick={() => handleEditTask(task)}
-                                    >
-                                      Edit
-                                    </MenuItem>
-                                    <MenuItem
-                                      icon={<FaTrash />}
-                                      onClick={() => {
-                                        setTaskToDelete(task);
-                                        onAlertOpen();
-                                      }}
-                                      color="red.500"
-                                    >
-                                      Delete
-                                    </MenuItem>
-                                  </MenuList>
-                                </Menu>
-                              </HStack>
-                            </HStack>
 
-                            <Collapse in={expandedTask === task.id}>
-                              <VStack align="stretch" mt={4} spacing={3}>
-                                <Divider />
-                                {task.notes && (
-                                  <Text fontSize="sm" color={mutedColor}>
-                                    {task.notes}
-                                  </Text>
-                                )}
-                                <HStack fontSize="sm" color={mutedColor} spacing={4}>
-                                  <HStack>
-                                    <FaClock />
-                                    <Text>Created: {new Date(task.createdAt).toLocaleDateString()}</Text>
-                                  </HStack>
-                                  {task.completed && (
-                                    <Tag colorScheme="green" size="sm">
-                                      <TagLeftIcon as={FaCheckCircle} />
-                                      <TagLabel>Completed</TagLabel>
-                                    </Tag>
-                                  )}
-                                </HStack>
-                              </VStack>
-                            </Collapse>
-                          </VStack>
-                        </CardBody>
-                      </Card>
-                    </MotionListItem>
-                  ))}
-                </List>
-              </TabPanel>
-              <TabPanel p={0}>
-                <List spacing={3} w="100%">
-                  {filteredTasks.map((task) => (
-                    <MotionListItem
-                      key={task.id}
-                      layout
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Card
-                        bg={cardBg}
-                        _hover={{ shadow: 'md', transform: 'translateY(-2px)' }}
-                        transition="all 0.2s"
-                      >
-                        <CardBody>
-                          <VStack align="stretch" spacing={2}>
-                            <HStack justify="space-between">
-                              <HStack flex={1} spacing={4}>
-                                <Checkbox
-                                  isChecked={task.completed}
-                                  onChange={() => handleToggleTask(task.id)}
-                                  size="lg"
-                                />
-                                <VStack align="start" spacing={1}>
-                                  <HStack>
-                                    <Text
-                                      fontSize="lg"
-                                      fontWeight="medium"
-                                      textDecoration={
-                                        task.completed ? 'line-through' : 'none'
-                                      }
-                                      color={task.completed ? mutedColor : textColor}
-                                    >
-                                      {task.title}
-                                    </Text>
-                                    <Tag
-                                      size="sm"
-                                      variant="subtle"
-                                      colorScheme={getPriorityColor(task.priority)}
-                                    >
-                                      <TagLeftIcon as={getPriorityIcon(task.priority)} />
-                                      <TagLabel>{task.priority}</TagLabel>
-                                    </Tag>
-                                  </HStack>
-                                  {task.dueDate && (
-                                    <HStack fontSize="sm" color={mutedColor}>
-                                      <FaCalendarAlt />
-                                      <Text>Due: {new Date(task.dueDate).toLocaleDateString()}</Text>
+                                    <Collapse in={expandedTask === task.id}>
+                                      <VStack align="stretch" mt={4} spacing={3}>
+                                        <Divider />
+                                        {task.notes && (
+                                          <Text fontSize="sm" color={mutedColor}>
+                                            {task.notes}
+                                          </Text>
+                                        )}
+                                        <HStack fontSize="sm" color={mutedColor} spacing={4}>
+                                          <HStack>
+                                            <FaClock />
+                                            <Text>Created: {new Date(task.createdAt).toLocaleDateString()}</Text>
+                                          </HStack>
+                                          {task.completed && (
+                                            <Tag colorScheme="green" size="sm">
+                                              <TagLeftIcon as={FaCheckCircle} />
+                                              <TagLabel>Completed</TagLabel>
+                                            </Tag>
+                                          )}
+                                        </HStack>
+                                      </VStack>
+                                    </Collapse>
+                                  </VStack>
+                                </CardBody>
+                              </Card>
+                            </MotionListItem>
+                          ))}
+                        </List>
+                      </TabPanel>
+                      <TabPanel p={0}>
+                        <List spacing={3} w="100%">
+                          {filteredTasks.map((task) => (
+                            <MotionListItem
+                              key={task.id}
+                              layout
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -20 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <Card
+                                bg={cardBg}
+                                _hover={{ shadow: 'md', transform: 'translateY(-2px)' }}
+                                transition="all 0.2s"
+                              >
+                                <CardBody>
+                                  <VStack align="stretch" spacing={2}>
+                                    <HStack justify="space-between">
+                                      <HStack flex={1} spacing={4}>
+                                        <Checkbox
+                                          isChecked={task.completed}
+                                          onChange={() => handleToggleTask(task.id)}
+                                          size="lg"
+                                        />
+                                        <VStack align="start" spacing={1}>
+                                          <HStack>
+                                            <Text
+                                              fontSize="lg"
+                                              fontWeight="medium"
+                                              textDecoration={
+                                                task.completed ? 'line-through' : 'none'
+                                              }
+                                              color={task.completed ? mutedColor : textColor}
+                                            >
+                                              {task.title}
+                                            </Text>
+                                            <Tag
+                                              size="sm"
+                                              variant="subtle"
+                                              colorScheme={getPriorityColor(task.priority)}
+                                            >
+                                              <TagLeftIcon as={getPriorityIcon(task.priority)} />
+                                              <TagLabel>{task.priority}</TagLabel>
+                                            </Tag>
+                                          </HStack>
+                                          {task.dueDate && (
+                                            <HStack fontSize="sm" color={mutedColor}>
+                                              <FaCalendarAlt />
+                                              <Text>Due: {new Date(task.dueDate).toLocaleDateString()}</Text>
+                                            </HStack>
+                                          )}
+                                        </VStack>
+                                      </HStack>
+                                      <HStack>
+                                        <IconButton
+                                          icon={expandedTask === task.id ? <FaChevronUp /> : <FaChevronDown />}
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleExpandTask(task.id)}
+                                          aria-label="Toggle details"
+                                        />
+                                        <Menu>
+                                          <MenuButton
+                                            as={IconButton}
+                                            icon={<FaEllipsisV />}
+                                            variant="ghost"
+                                            size="sm"
+                                          />
+                                          <MenuList>
+                                            <MenuItem
+                                              icon={<FaEdit />}
+                                              onClick={() => handleEditTask(task)}
+                                            >
+                                              Edit
+                                            </MenuItem>
+                                            <MenuItem
+                                              icon={<FaTrash />}
+                                              onClick={() => {
+                                                setTaskToDelete(task);
+                                                onAlertOpen();
+                                              }}
+                                              color="red.500"
+                                            >
+                                              Delete
+                                            </MenuItem>
+                                          </MenuList>
+                                        </Menu>
+                                      </HStack>
                                     </HStack>
-                                  )}
-                                </VStack>
-                              </HStack>
-                              <HStack>
-                                <IconButton
-                                  icon={expandedTask === task.id ? <FaChevronUp /> : <FaChevronDown />}
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleExpandTask(task.id)}
-                                  aria-label="Toggle details"
-                                />
-                                <Menu>
-                                  <MenuButton
-                                    as={IconButton}
-                                    icon={<FaEllipsisV />}
-                                    variant="ghost"
-                                    size="sm"
-                                  />
-                                  <MenuList>
-                                    <MenuItem
-                                      icon={<FaEdit />}
-                                      onClick={() => handleEditTask(task)}
-                                    >
-                                      Edit
-                                    </MenuItem>
-                                    <MenuItem
-                                      icon={<FaTrash />}
-                                      onClick={() => {
-                                        setTaskToDelete(task);
-                                        onAlertOpen();
-                                      }}
-                                      color="red.500"
-                                    >
-                                      Delete
-                                    </MenuItem>
-                                  </MenuList>
-                                </Menu>
-                              </HStack>
-                            </HStack>
 
-                            <Collapse in={expandedTask === task.id}>
-                              <VStack align="stretch" mt={4} spacing={3}>
-                                <Divider />
-                                {task.notes && (
-                                  <Text fontSize="sm" color={mutedColor}>
-                                    {task.notes}
-                                  </Text>
-                                )}
-                                <HStack fontSize="sm" color={mutedColor} spacing={4}>
-                                  <HStack>
-                                    <FaClock />
-                                    <Text>Created: {new Date(task.createdAt).toLocaleDateString()}</Text>
-                                  </HStack>
-                                  {task.completed && (
-                                    <Tag colorScheme="green" size="sm">
-                                      <TagLeftIcon as={FaCheckCircle} />
-                                      <TagLabel>Completed</TagLabel>
-                                    </Tag>
-                                  )}
-                                </HStack>
-                              </VStack>
-                            </Collapse>
-                          </VStack>
-                        </CardBody>
-                      </Card>
-                    </MotionListItem>
-                  ))}
-                </List>
-              </TabPanel>
-              <TabPanel p={0}>
-                <List spacing={3} w="100%">
-                  {filteredTasks.map((task) => (
-                    <MotionListItem
-                      key={task.id}
-                      layout
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Card
-                        bg={cardBg}
-                        _hover={{ shadow: 'md', transform: 'translateY(-2px)' }}
-                        transition="all 0.2s"
-                      >
-                        <CardBody>
-                          <VStack align="stretch" spacing={2}>
-                            <HStack justify="space-between">
-                              <HStack flex={1} spacing={4}>
-                                <Checkbox
-                                  isChecked={task.completed}
-                                  onChange={() => handleToggleTask(task.id)}
-                                  size="lg"
-                                />
-                                <VStack align="start" spacing={1}>
-                                  <HStack>
-                                    <Text
-                                      fontSize="lg"
-                                      fontWeight="medium"
-                                      textDecoration={
-                                        task.completed ? 'line-through' : 'none'
-                                      }
-                                      color={task.completed ? mutedColor : textColor}
-                                    >
-                                      {task.title}
-                                    </Text>
-                                    <Tag
-                                      size="sm"
-                                      variant="subtle"
-                                      colorScheme={getPriorityColor(task.priority)}
-                                    >
-                                      <TagLeftIcon as={getPriorityIcon(task.priority)} />
-                                      <TagLabel>{task.priority}</TagLabel>
-                                    </Tag>
-                                  </HStack>
-                                  {task.dueDate && (
-                                    <HStack fontSize="sm" color={mutedColor}>
-                                      <FaCalendarAlt />
-                                      <Text>Due: {new Date(task.dueDate).toLocaleDateString()}</Text>
+                                    <Collapse in={expandedTask === task.id}>
+                                      <VStack align="stretch" mt={4} spacing={3}>
+                                        <Divider />
+                                        {task.notes && (
+                                          <Text fontSize="sm" color={mutedColor}>
+                                            {task.notes}
+                                          </Text>
+                                        )}
+                                        <HStack fontSize="sm" color={mutedColor} spacing={4}>
+                                          <HStack>
+                                            <FaClock />
+                                            <Text>Created: {new Date(task.createdAt).toLocaleDateString()}</Text>
+                                          </HStack>
+                                          {task.completed && (
+                                            <Tag colorScheme="green" size="sm">
+                                              <TagLeftIcon as={FaCheckCircle} />
+                                              <TagLabel>Completed</TagLabel>
+                                            </Tag>
+                                          )}
+                                        </HStack>
+                                      </VStack>
+                                    </Collapse>
+                                  </VStack>
+                                </CardBody>
+                              </Card>
+                            </MotionListItem>
+                          ))}
+                        </List>
+                      </TabPanel>
+                      <TabPanel p={0}>
+                        <List spacing={3} w="100%">
+                          {filteredTasks.map((task) => (
+                            <MotionListItem
+                              key={task.id}
+                              layout
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -20 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <Card
+                                bg={cardBg}
+                                _hover={{ shadow: 'md', transform: 'translateY(-2px)' }}
+                                transition="all 0.2s"
+                              >
+                                <CardBody>
+                                  <VStack align="stretch" spacing={2}>
+                                    <HStack justify="space-between">
+                                      <HStack flex={1} spacing={4}>
+                                        <Checkbox
+                                          isChecked={task.completed}
+                                          onChange={() => handleToggleTask(task.id)}
+                                          size="lg"
+                                        />
+                                        <VStack align="start" spacing={1}>
+                                          <HStack>
+                                            <Text
+                                              fontSize="lg"
+                                              fontWeight="medium"
+                                              textDecoration={
+                                                task.completed ? 'line-through' : 'none'
+                                              }
+                                              color={task.completed ? mutedColor : textColor}
+                                            >
+                                              {task.title}
+                                            </Text>
+                                            <Tag
+                                              size="sm"
+                                              variant="subtle"
+                                              colorScheme={getPriorityColor(task.priority)}
+                                            >
+                                              <TagLeftIcon as={getPriorityIcon(task.priority)} />
+                                              <TagLabel>{task.priority}</TagLabel>
+                                            </Tag>
+                                          </HStack>
+                                          {task.dueDate && (
+                                            <HStack fontSize="sm" color={mutedColor}>
+                                              <FaCalendarAlt />
+                                              <Text>Due: {new Date(task.dueDate).toLocaleDateString()}</Text>
+                                            </HStack>
+                                          )}
+                                        </VStack>
+                                      </HStack>
+                                      <HStack>
+                                        <IconButton
+                                          icon={expandedTask === task.id ? <FaChevronUp /> : <FaChevronDown />}
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleExpandTask(task.id)}
+                                          aria-label="Toggle details"
+                                        />
+                                        <Menu>
+                                          <MenuButton
+                                            as={IconButton}
+                                            icon={<FaEllipsisV />}
+                                            variant="ghost"
+                                            size="sm"
+                                          />
+                                          <MenuList>
+                                            <MenuItem
+                                              icon={<FaEdit />}
+                                              onClick={() => handleEditTask(task)}
+                                            >
+                                              Edit
+                                            </MenuItem>
+                                            <MenuItem
+                                              icon={<FaTrash />}
+                                              onClick={() => {
+                                                setTaskToDelete(task);
+                                                onAlertOpen();
+                                              }}
+                                              color="red.500"
+                                            >
+                                              Delete
+                                            </MenuItem>
+                                          </MenuList>
+                                        </Menu>
+                                      </HStack>
                                     </HStack>
-                                  )}
-                                </VStack>
-                              </HStack>
-                              <HStack>
-                                <IconButton
-                                  icon={expandedTask === task.id ? <FaChevronUp /> : <FaChevronDown />}
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleExpandTask(task.id)}
-                                  aria-label="Toggle details"
-                                />
-                                <Menu>
-                                  <MenuButton
-                                    as={IconButton}
-                                    icon={<FaEllipsisV />}
-                                    variant="ghost"
-                                    size="sm"
-                                  />
-                                  <MenuList>
-                                    <MenuItem
-                                      icon={<FaEdit />}
-                                      onClick={() => handleEditTask(task)}
-                                    >
-                                      Edit
-                                    </MenuItem>
-                                    <MenuItem
-                                      icon={<FaTrash />}
-                                      onClick={() => {
-                                        setTaskToDelete(task);
-                                        onAlertOpen();
-                                      }}
-                                      color="red.500"
-                                    >
-                                      Delete
-                                    </MenuItem>
-                                  </MenuList>
-                                </Menu>
-                              </HStack>
-                            </HStack>
 
-                            <Collapse in={expandedTask === task.id}>
-                              <VStack align="stretch" mt={4} spacing={3}>
-                                <Divider />
-                                {task.notes && (
-                                  <Text fontSize="sm" color={mutedColor}>
-                                    {task.notes}
-                                  </Text>
-                                )}
-                                <HStack fontSize="sm" color={mutedColor} spacing={4}>
-                                  <HStack>
-                                    <FaClock />
-                                    <Text>Created: {new Date(task.createdAt).toLocaleDateString()}</Text>
-                                  </HStack>
-                                  {task.completed && (
-                                    <Tag colorScheme="green" size="sm">
-                                      <TagLeftIcon as={FaCheckCircle} />
-                                      <TagLabel>Completed</TagLabel>
-                                    </Tag>
-                                  )}
-                                </HStack>
-                              </VStack>
-                            </Collapse>
-                          </VStack>
-                        </CardBody>
-                      </Card>
-                    </MotionListItem>
-                  ))}
-                </List>
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </VStack>
+                                    <Collapse in={expandedTask === task.id}>
+                                      <VStack align="stretch" mt={4} spacing={3}>
+                                        <Divider />
+                                        {task.notes && (
+                                          <Text fontSize="sm" color={mutedColor}>
+                                            {task.notes}
+                                          </Text>
+                                        )}
+                                        <HStack fontSize="sm" color={mutedColor} spacing={4}>
+                                          <HStack>
+                                            <FaClock />
+                                            <Text>Created: {new Date(task.createdAt).toLocaleDateString()}</Text>
+                                          </HStack>
+                                          {task.completed && (
+                                            <Tag colorScheme="green" size="sm">
+                                              <TagLeftIcon as={FaCheckCircle} />
+                                              <TagLabel>Completed</TagLabel>
+                                            </Tag>
+                                          )}
+                                        </HStack>
+                                      </VStack>
+                                    </Collapse>
+                                  </VStack>
+                                </CardBody>
+                              </Card>
+                            </MotionListItem>
+                          ))}
+                        </List>
+                      </TabPanel>
+                    </TabPanels>
+                  </Tabs>
+                </VStack>
+              </Box>
+            </VStack>
+          </CardBody>
+          <CardFooter>
+            <Text fontSize="sm" color="gray.500">Tip: Use filters and tags to stay productive!</Text>
+          </CardFooter>
+        </Card>
       </Box>
 
       <Drawer
@@ -896,7 +908,7 @@ function TasksPage() {
           </AlertDialogContent>
         </AlertDialogOverlay>
       </AlertDialog>
-    </VStack>
+    </>
   );
 }
 
@@ -912,4 +924,4 @@ export default function TasksPageWithErrorBoundary() {
       <TasksPage />
     </ErrorBoundary>
   );
-} 
+}

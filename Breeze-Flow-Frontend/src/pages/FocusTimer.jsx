@@ -186,111 +186,113 @@ function FocusTimer() {
   }
 
   return (
-    <VStack spacing={8} align="stretch">
-      <Box>
-        <Heading size="lg" mb={2}>
-          Focus Timer
-        </Heading>
-        <Text color="gray.500">Stay focused and productive with Pomodoro technique</Text>
-      </Box>
+    <Box maxW="700px" mx="auto" mt={8} p={{ base: 2, md: 6 }}>
+      <VStack spacing={8} align="stretch">
+        <Box>
+          <Heading size="lg" mb={2}>
+            Focus Timer
+          </Heading>
+          <Text color="gray.500">Stay focused and productive with Pomodoro technique</Text>
+        </Box>
 
-      <Box p={8} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-        <VStack spacing={6}>
-          <Progress
-            value={progress}
-            size="lg"
-            colorScheme={isBreak ? 'green' : 'blue'}
-            borderRadius="full"
-            w="100%"
-          />
-
-          <Text fontSize="6xl" fontWeight="bold">
-            {formatTime(timeLeft)}
-          </Text>
-
-          <Text fontSize="xl" color="gray.500">
-            {isBreak ? 'Break Time' : 'Focus Time'}
-          </Text>
-
-          <HStack spacing={4}>
-            <IconButton
-              icon={isActive ? <FaPause /> : <FaPlay />}
-              onClick={toggleTimer}
-              colorScheme={isActive ? 'red' : 'blue'}
+        <Box p={8} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+          <VStack spacing={6}>
+            <Progress
+              value={progress}
               size="lg"
-              isRound
+              colorScheme={isBreak ? 'green' : 'blue'}
+              borderRadius="full"
+              w="100%"
             />
-            <IconButton
-              icon={<FaRedo />}
-              onClick={resetTimer}
-              size="lg"
-              isRound
-            />
-          </HStack>
 
-          <HStack spacing={4} pt={4}>
-            <Select
-              value={workDuration}
-              onChange={(e) => {
-                setWorkDuration(Number(e.target.value));
-                if (!isBreak) setTimeLeft(Number(e.target.value) * 60);
-              }}
-              w="150px"
-            >
-              <option value={25}>25 min</option>
-              <option value={30}>30 min</option>
-              <option value={45}>45 min</option>
-              <option value={60}>60 min</option>
-            </Select>
-            <Select
-              value={breakDuration}
-              onChange={(e) => {
-                setBreakDuration(Number(e.target.value));
-                if (isBreak) setTimeLeft(Number(e.target.value) * 60);
-              }}
-              w="150px"
-            >
-              <option value={5}>5 min break</option>
-              <option value={10}>10 min break</option>
-              <option value={15}>15 min break</option>
-            </Select>
-          </HStack>
-        </VStack>
-      </Box>
+            <Text fontSize="6xl" fontWeight="bold">
+              {formatTime(timeLeft)}
+            </Text>
 
-      <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
-        <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-          <Stat>
-            <StatLabel>Sessions Completed</StatLabel>
-            <StatNumber>{sessionsCompleted}</StatNumber>
-            <StatHelpText>
-              <FaCheckCircle /> Today's Progress
-            </StatHelpText>
-          </Stat>
+            <Text fontSize="xl" color="gray.500">
+              {isBreak ? 'Break Time' : 'Focus Time'}
+            </Text>
+
+            <HStack spacing={4}>
+              <IconButton
+                icon={isActive ? <FaPause /> : <FaPlay />}
+                onClick={toggleTimer}
+                colorScheme={isActive ? 'red' : 'blue'}
+                size="lg"
+                isRound
+              />
+              <IconButton
+                icon={<FaRedo />}
+                onClick={resetTimer}
+                size="lg"
+                isRound
+              />
+            </HStack>
+
+            <HStack spacing={4} pt={4} w="100%" justify="center">
+              <Select
+                value={workDuration}
+                onChange={(e) => {
+                  setWorkDuration(Number(e.target.value));
+                  if (!isBreak) setTimeLeft(Number(e.target.value) * 60);
+                }}
+                w="150px"
+              >
+                <option value={25}>25 min</option>
+                <option value={30}>30 min</option>
+                <option value={45}>45 min</option>
+                <option value={60}>60 min</option>
+              </Select>
+              <Select
+                value={breakDuration}
+                onChange={(e) => {
+                  setBreakDuration(Number(e.target.value));
+                  if (isBreak) setTimeLeft(Number(e.target.value) * 60);
+                }}
+                w="150px"
+              >
+                <option value={5}>5 min break</option>
+                <option value={10}>10 min break</option>
+                <option value={15}>15 min break</option>
+              </Select>
+            </HStack>
+          </VStack>
         </Box>
 
-        <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-          <Stat>
-            <StatLabel>Total Focus Time</StatLabel>
-            <StatNumber>{formatHours(totalFocusTime)}</StatNumber>
-            <StatHelpText>
-              <FaClock /> Today's Total
-            </StatHelpText>
-          </Stat>
-        </Box>
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
+          <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+            <Stat>
+              <StatLabel>Sessions Completed</StatLabel>
+              <StatNumber>{sessionsCompleted}</StatNumber>
+              <StatHelpText>
+                <FaCheckCircle /> Today's Progress
+              </StatHelpText>
+            </Stat>
+          </Box>
 
-        <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-          <Stat>
-            <StatLabel>Current Session</StatLabel>
-            <StatNumber>{isBreak ? 'Break' : 'Focus'}</StatNumber>
-            <StatHelpText>
-              <FaHourglassHalf /> {formatTime(timeLeft)} Remaining
-            </StatHelpText>
-          </Stat>
-        </Box>
-      </SimpleGrid>
-    </VStack>
+          <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+            <Stat>
+              <StatLabel>Total Focus Time</StatLabel>
+              <StatNumber>{formatHours(totalFocusTime)}</StatNumber>
+              <StatHelpText>
+                <FaClock /> Today's Total
+              </StatHelpText>
+            </Stat>
+          </Box>
+
+          <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+            <Stat>
+              <StatLabel>Current Session</StatLabel>
+              <StatNumber>{isBreak ? 'Break' : 'Focus'}</StatNumber>
+              <StatHelpText>
+                <FaHourglassHalf /> {formatTime(timeLeft)} Remaining
+              </StatHelpText>
+            </Stat>
+          </Box>
+        </SimpleGrid>
+      </VStack>
+    </Box>
   );
 }
 
-export default FocusTimer; 
+export default FocusTimer;

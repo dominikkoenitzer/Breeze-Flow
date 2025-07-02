@@ -60,7 +60,7 @@ function Sidebar({ isMobile, onClose }) {
   const navItems = [
     { icon: FaHome, label: 'Dashboard', to: '/' },
     { icon: FaTasks, label: 'Tasks', to: '/tasks' },
-    { icon: FaClock, label: 'Focus Timer', to: '/focus-timer' },
+    { icon: FaClock, label: 'Focus Timer', to: '/focus' },
     { icon: FaCalendarAlt, label: 'Calendar', to: '/calendar' },
     { icon: FaChartLine, label: 'Analytics', to: '/analytics' },
     { icon: FaCog, label: 'Settings', to: '/settings' },

@@ -23,6 +23,10 @@ import {
   Badge,
   Spinner,
   useToast,
+  Card,
+  CardBody,
+  CardHeader,
+  CardFooter,
 } from '@chakra-ui/react';
 import { FaChevronLeft, FaChevronRight, FaPlus } from 'react-icons/fa';
 import { createEvent, getEvents, updateEvent, deleteEvent } from '../services/api';
@@ -219,44 +223,48 @@ function Calendar() {
   }
 
   return (
-    <VStack spacing={8} align="stretch">
-      <Box>
-        <Heading size="lg" mb={2}>
-          Calendar
-        </Heading>
-        <Text color="gray.500">Schedule and manage your events</Text>
-      </Box>
-
-      <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-        <VStack spacing={6}>
-          <HStack justify="space-between" w="100%">
-            <HStack>
-              <IconButton
-                icon={<FaChevronLeft />}
-                onClick={handlePrevMonth}
-                variant="ghost"
-              />
-              <Heading size="md">
-                {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-              </Heading>
-              <IconButton
-                icon={<FaChevronRight />}
-                onClick={handleNextMonth}
-                variant="ghost"
-              />
-            </HStack>
+    <Box maxW="900px" mx="auto" mt={8} p={{ base: 2, md: 6 }}>
+      <Card boxShadow="xl" borderRadius="2xl" p={6}>
+        <CardHeader>
+          <HStack justify="space-between" mb={4}>
+            <IconButton
+              icon={<FaChevronLeft />}
+              aria-label="Previous Month"
+              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}
+              variant="ghost"
+              size="lg"
+            />
+            <Heading size="lg" textAlign="center">
+              {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+            </Heading>
+            <IconButton
+              icon={<FaChevronRight />}
+              aria-label="Next Month"
+              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}
+              variant="ghost"
+              size="lg"
+            />
+            <Button leftIcon={<FaPlus />} colorScheme="blue" onClick={onOpen} size="md">
+              Add Event
+            </Button>
           </HStack>
-
-          <Grid templateColumns="repeat(7, 1fr)" gap={1} w="100%">
-            {dayNames.map((day) => (
-              <GridItem key={day} textAlign="center" fontWeight="bold">
-                <Text>{day}</Text>
-              </GridItem>
-            ))}
-            {renderCalendarDays()}
-          </Grid>
-        </VStack>
-      </Box>
+        </CardHeader>
+        <CardBody>
+          <VStack spacing={6}>
+            <Grid templateColumns="repeat(7, 1fr)" gap={1} w="100%">
+              {dayNames.map((day) => (
+                <GridItem key={day} textAlign="center" fontWeight="bold">
+                  <Text>{day}</Text>
+                </GridItem>
+              ))}
+              {renderCalendarDays()}
+            </Grid>
+          </VStack>
+        </CardBody>
+        <CardFooter>
+          <Text fontSize="sm" color="gray.500">Click a day to view or add events.</Text>
+        </CardFooter>
+      </Card>
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
@@ -300,8 +308,8 @@ function Calendar() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </VStack>
+    </Box>
   );
 }
 
-export default Calendar; 
+export default Calendar;

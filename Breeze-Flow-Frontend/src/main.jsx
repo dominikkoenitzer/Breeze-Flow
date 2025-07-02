@@ -13,10 +13,22 @@ import Profile from './pages/Profile'
 import Help from './pages/Help'
 import theme from './theme'
 
+// ErrorBoundary for better UX
+function ErrorFallback({ error }) {
+  return (
+    <div style={{ padding: 32, textAlign: 'center' }}>
+      <h1>Something went wrong 😢</h1>
+      <pre style={{ color: 'red', margin: 16 }}>{error.message}</pre>
+      <p>Please try refreshing the page or contact support if the problem persists.</p>
+    </div>
+  );
+}
+
 const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
+    errorElement: <ErrorFallback error={{ message: 'Page not found or an unexpected error occurred.' }} />,
     children: [
       {
         path: '/',
@@ -61,4 +73,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <RouterProvider router={router} />
     </ChakraProvider>
   </React.StrictMode>
-) 
+)
