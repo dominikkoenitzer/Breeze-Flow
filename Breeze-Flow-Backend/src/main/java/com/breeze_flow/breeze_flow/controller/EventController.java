@@ -1,33 +1,15 @@
 package com.breeze_flow.breeze_flow.controller;
 
+import com.breeze_flow.breeze_flow.model.Event;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.*;
 
-/**
- * Kalender-Events Controller
- * -----------------------
- * 
- * Verwaltet die Kalenderereignisse der Anwendung.
- * Ermöglicht die Planung und Organisation von Terminen.
- * 
- * Endpunkte:
- * - POST /api/events: Neues Event erstellen
- * - GET /api/events: Alle Events abrufen
- * - GET /api/events/{id}: Einzelnes Event abrufen
- * - PUT /api/events/{id}: Event aktualisieren
- * - DELETE /api/events/{id}: Event löschen
- * 
- * Funktionen:
- * - Terminplanung und -verwaltung
- * - Kategorisierung von Events
- * - Erinnerungsfunktion
- * - Teilnehmerverwaltung
- */
 @RestController
 @RequestMapping("/api/events")
 public class EventController {
+    private static final Map<String, Event> events = new HashMap<>();
 
     /**
      * Erstellt ein neues Event
@@ -51,9 +33,11 @@ public class EventController {
      * @return ResponseEntity mit dem erstellten Event
      */
     @PostMapping
-    public ResponseEntity<String> createEvent(@RequestBody String event) {
-        // Event creation logic here (e.g., save to database)
-        return ResponseEntity.ok("Event created: " + event);
+    public ResponseEntity<Event> createEvent(@RequestBody Event event) {
+        String id = UUID.randomUUID().toString();
+        event.setId(id);
+        events.put(id, event);
+        return ResponseEntity.ok(event);
     }
 
     /**
@@ -65,9 +49,8 @@ public class EventController {
      * @return Liste aller Events
      */
     @GetMapping
-    public ResponseEntity<List<String>> getAllEvents() {
-        // Logic to retrieve all events (e.g., from database)
-        return ResponseEntity.ok(List.of("Event 1", "Event 2"));
+    public ResponseEntity<List<Event>> getAllEvents() {
+        return ResponseEntity.ok(new ArrayList<>(events.values()));
     }
 
     /**
@@ -79,9 +62,10 @@ public class EventController {
      * @return ResponseEntity mit dem gefundenen Event oder 404
      */
     @GetMapping("/{id}")
-    public ResponseEntity<String> getEventById(@PathVariable String id) {
-        // Logic to retrieve an event by ID
-        return ResponseEntity.ok("Event details for ID: " + id);
+    public ResponseEntity<Event> getEventById(@PathVariable String id) {
+        Event event = events.get(id);
+        if (event == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(event);
     }
 
     /**
@@ -101,13 +85,15 @@ public class EventController {
      * - reminder: Neue Erinnerungszeit
      * 
      * @param id ID des Events
-     * @param event Aktualisierte Eventdaten
+     * @param updatedEvent Aktualisierte Eventdaten
      * @return ResponseEntity mit dem aktualisierten Event oder 404
      */
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateEvent(@PathVariable String id, @RequestBody String event) {
-        // Event update logic here
-        return ResponseEntity.ok("Event updated: " + event);
+    public ResponseEntity<Event> updateEvent(@PathVariable String id, @RequestBody Event updatedEvent) {
+        if (!events.containsKey(id)) return ResponseEntity.notFound().build();
+        updatedEvent.setId(id);
+        events.put(id, updatedEvent);
+        return ResponseEntity.ok(updatedEvent);
     }
 
     /**
@@ -120,7 +106,7 @@ public class EventController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEvent(@PathVariable String id) {
-        // Event deletion logic here
-        return ResponseEntity.ok().build();
+        events.remove(id);
+        return ResponseEntity.noContent().build();
     }
 }

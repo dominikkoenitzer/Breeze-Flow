@@ -4,7 +4,7 @@ import com.breeze_flow.breeze_flow.model.Task;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.*;
 
 /**
  * Aufgaben-Controller (Task Controller)
@@ -29,6 +29,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/tasks")
 public class TaskController {
+    private static final Map<String, Task> tasks = new HashMap<>();
 
     /**
      * Erstellt eine neue Aufgabe
@@ -48,6 +49,9 @@ public class TaskController {
      */
     @PostMapping
     public ResponseEntity<Task> createTask(@RequestBody Task task) {
+        String id = UUID.randomUUID().toString();
+        task.setId(id);
+        tasks.put(id, task);
         return ResponseEntity.ok(task);
     }
 
@@ -61,7 +65,7 @@ public class TaskController {
      */
     @GetMapping
     public ResponseEntity<List<Task>> getAllTasks() {
-        return ResponseEntity.ok(List.of());
+        return ResponseEntity.ok(new ArrayList<>(tasks.values()));
     }
 
     /**
@@ -74,7 +78,9 @@ public class TaskController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<Task> getTaskById(@PathVariable String id) {
-        return ResponseEntity.notFound().build();
+        Task task = tasks.get(id);
+        if (task == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(task);
     }
 
     /**
@@ -96,8 +102,11 @@ public class TaskController {
      * @return ResponseEntity mit der aktualisierten Aufgabe oder 404
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable String id, @RequestBody Task task) {
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<Task> updateTask(@PathVariable String id, @RequestBody Task updatedTask) {
+        if (!tasks.containsKey(id)) return ResponseEntity.notFound().build();
+        updatedTask.setId(id);
+        tasks.put(id, updatedTask);
+        return ResponseEntity.ok(updatedTask);
     }
 
     /**
@@ -110,6 +119,7 @@ public class TaskController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable String id) {
-        return ResponseEntity.notFound().build();
+        tasks.remove(id);
+        return ResponseEntity.noContent().build();
     }
 }

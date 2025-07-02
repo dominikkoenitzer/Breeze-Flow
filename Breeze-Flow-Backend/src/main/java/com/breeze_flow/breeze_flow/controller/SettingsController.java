@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/settings")
 public class SettingsController {
+    private static Settings settings = new Settings();
 
     /**
      * Ruft die aktuellen Einstellungen ab
@@ -51,7 +52,7 @@ public class SettingsController {
      */
     @GetMapping
     public ResponseEntity<Settings> getSettings() {
-        return ResponseEntity.ok(new Settings()); // Rückgabe von Default-Einstellungen
+        return ResponseEntity.ok(settings);
     }
 
     /**
@@ -75,7 +76,8 @@ public class SettingsController {
      * @return ResponseEntity mit den aktualisierten Einstellungen
      */
     @PutMapping
-    public ResponseEntity<Settings> updateSettings(@RequestBody Settings settings) {
-        return ResponseEntity.ok(settings); // Rückgabe der aktualisierten Einstellungen
+    public ResponseEntity<Settings> updateSettings(@RequestBody Settings updatedSettings) {
+        settings = updatedSettings;
+        return ResponseEntity.ok(settings);
     }
 }
