@@ -60,10 +60,10 @@ function Sidebar({ isMobile, onClose }) {
 
   const navItems = [
     { icon: FaHome, label: 'Dashboard', to: '/' },
-    { icon: FaTasks, label: 'Tasks', to: '/tasks' },
     { icon: FaClock, label: 'Focus Timer', to: '/focus' },
     { icon: FaCalendarAlt, label: 'Calendar', to: '/calendar' },
     { icon: FaChartLine, label: 'Analytics', to: '/analytics' },
+    { icon: FaTasks, label: 'Tasks', to: '/tasks' },
     { icon: FaCog, label: 'Settings', to: '/settings' },
     { icon: FaQuestionCircle, label: 'Help', to: '/help' },
   ];
