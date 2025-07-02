@@ -3,18 +3,8 @@ import {
   Flex,
   Text,
   IconButton,
-  Button,
-  Stack,
-  Icon,
   useColorModeValue,
-  useBreakpointValue,
   useColorMode,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  MenuDivider,
-  Avatar,
   HStack,
   Container,
   Tooltip,
@@ -23,10 +13,6 @@ import {
   FaSun,
   FaMoon,
   FaBell,
-  FaUser,
-  FaCog,
-  FaQuestionCircle,
-  FaSignOutAlt,
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
@@ -86,68 +72,6 @@ function Header() {
                 _hover={{ bg: useColorModeValue('gray.100', 'gray.700') }}
               />
             </Tooltip>
-
-            <Menu>
-              <MenuButton
-                as={Button}
-                variant="ghost"
-                size="md"
-                px={2}
-                py={1}
-                _hover={{ bg: useColorModeValue('gray.100', 'gray.700') }}
-              >
-                <HStack spacing={2}>
-                  <Avatar
-                    size="sm"
-                    name="User Name"
-                    src="https://bit.ly/broken-link"
-                  />
-                  <Text
-                    display={{ base: 'none', md: 'block' }}
-                    fontSize="sm"
-                    fontWeight="medium"
-                  >
-                    User Name
-                  </Text>
-                </HStack>
-              </MenuButton>
-              <MenuList
-                shadow="lg"
-                border="1px"
-                borderColor={borderColor}
-                py={2}
-              >
-                <MenuItem
-                  icon={<Icon as={FaUser} />}
-                  onClick={() => navigate('/profile')}
-                  _hover={{ bg: useColorModeValue('gray.100', 'gray.700') }}
-                >
-                  Profile
-                </MenuItem>
-                <MenuItem
-                  icon={<Icon as={FaCog} />}
-                  onClick={() => navigate('/settings')}
-                  _hover={{ bg: useColorModeValue('gray.100', 'gray.700') }}
-                >
-                  Settings
-                </MenuItem>
-                <MenuItem
-                  icon={<Icon as={FaQuestionCircle} />}
-                  onClick={() => navigate('/help')}
-                  _hover={{ bg: useColorModeValue('gray.100', 'gray.700') }}
-                >
-                  Help Center
-                </MenuItem>
-                <MenuDivider />
-                <MenuItem
-                  icon={<Icon as={FaSignOutAlt} />}
-                  onClick={() => navigate('/')}
-                  _hover={{ bg: useColorModeValue('gray.100', 'gray.700') }}
-                >
-                  Sign Out
-                </MenuItem>
-              </MenuList>
-            </Menu>
           </HStack>
         </Flex>
       </Container>
@@ -155,4 +79,4 @@ function Header() {
   );
 }
 
-export default Header; 
+export default Header;

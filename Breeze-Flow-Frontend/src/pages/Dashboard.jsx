@@ -18,6 +18,7 @@ import {
   StatNumber,
   StatHelpText,
   StatArrow,
+  Flex,
 } from '@chakra-ui/react';
 import {
   FaCheckCircle,
@@ -96,198 +97,154 @@ function Dashboard() {
         </Box>
       </SimpleGrid>
 
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-        <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-          <VStack align="stretch" spacing={6}>
-            <HStack justify="space-between">
-              <Heading size="md">Today's Progress</Heading>
-              <RouterLink to="/focus">
-                <Button
-                  rightIcon={<FaPlay />}
-                  colorScheme="blue"
-                  size="sm"
-                >
-                  Start Focus Session
-                </Button>
-              </RouterLink>
-            </HStack>
-
-            <Box>
-              <HStack justify="space-between" mb={2}>
-                <Text>Daily Focus Goal</Text>
-                <Text>{stats.focusProgress}%</Text>
-              </HStack>
-              <Progress
-                value={stats.focusProgress}
-                colorScheme="blue"
-                borderRadius="full"
-              />
-            </Box>
-
-            <Box>
-              <HStack justify="space-between" mb={2}>
-                <Text>Task Completion</Text>
-                <Text>{stats.taskProgress}%</Text>
-              </HStack>
-              <Progress
-                value={stats.taskProgress}
-                colorScheme="green"
-                borderRadius="full"
-              />
-            </Box>
-          </VStack>
-        </Box>
-
-        <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-          <VStack align="stretch" spacing={6}>
-            <HStack justify="space-between">
-              <Heading size="md">Recent Tasks</Heading>
-              <RouterLink to="/tasks">
-                <Button
-                  rightIcon={<FaChevronRight />}
-                  variant="ghost"
-                  size="sm"
-                >
-                  View All
-                </Button>
-              </RouterLink>
-            </HStack>
-
-            <List spacing={3}>
-              {recentTasks.map((task) => (
-                <ListItem
-                  key={task.id}
-                  p={3}
-                  bg={useColorModeValue('gray.50', 'gray.600')}
-                  borderRadius="md"
-                >
-                  <HStack justify="space-between">
-                    <HStack>
-                      <FaCheckCircle
-                        color={
-                          task.status === 'completed'
-                            ? '#48BB78'
-                            : task.status === 'in-progress'
-                            ? '#3182CE'
-                            : '#718096'
-                        }
-                      />
-                      <Text>{task.title}</Text>
-                    </HStack>
-                    <Badge
-                      colorScheme={
-                        task.status === 'completed'
-                          ? 'green'
-                          : task.status === 'in-progress'
-                          ? 'blue'
-                          : 'gray'
-                      }
+      <Flex direction={{ base: 'column', lg: 'row' }} gap={6} align="start">
+        <Box flex={2} w="100%">
+          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+            <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+              <VStack align="stretch" spacing={6}>
+                <HStack justify="space-between">
+                  <Heading size="md">Today's Progress</Heading>
+                  <RouterLink to="/focus">
+                    <Button
+                      rightIcon={<FaPlay />}
+                      colorScheme="blue"
+                      size="sm"
                     >
-                      {task.status}
-                    </Badge>
+                      Start Focus Session
+                    </Button>
+                  </RouterLink>
+                </HStack>
+
+                <Box>
+                  <HStack justify="space-between" mb={2}>
+                    <Text>Daily Focus Goal</Text>
+                    <Text>{stats.focusProgress}%</Text>
                   </HStack>
-                </ListItem>
-              ))}
-            </List>
-          </VStack>
-        </Box>
+                  <Progress
+                    value={stats.focusProgress}
+                    colorScheme="blue"
+                    borderRadius="full"
+                  />
+                </Box>
 
-        <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-          <VStack align="stretch" spacing={6}>
-            <HStack justify="space-between">
-              <Heading size="md">Upcoming Events</Heading>
-              <RouterLink to="/calendar">
-                <Button
-                  rightIcon={<FaChevronRight />}
-                  variant="ghost"
-                  size="sm"
-                >
-                  View Calendar
-                </Button>
-              </RouterLink>
-            </HStack>
+                <Box>
+                  <HStack justify="space-between" mb={2}>
+                    <Text>Task Completion</Text>
+                    <Text>{stats.taskProgress}%</Text>
+                  </HStack>
+                  <Progress
+                    value={stats.taskProgress}
+                    colorScheme="green"
+                    borderRadius="full"
+                  />
+                </Box>
+              </VStack>
+            </Box>
 
-            <List spacing={3}>
-              {upcomingEvents.map((event) => (
-                <ListItem
-                  key={event.id}
-                  p={3}
-                  bg={useColorModeValue('gray.50', 'gray.600')}
-                  borderRadius="md"
-                >
-                  <HStack justify="space-between">
-                    <HStack spacing={4}>
-                      <FaCalendar />
-                      <Box>
-                        <Text fontWeight="medium">{event.title}</Text>
-                        <Text fontSize="sm" color="gray.500">
-                          {event.date} at {event.time}
-                        </Text>
-                      </Box>
-                    </HStack>
-                    <IconButton
-                      icon={<FaClock />}
+            <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+              <VStack align="stretch" spacing={6}>
+                <HStack justify="space-between">
+                  <Heading size="md">Recent Tasks</Heading>
+                  <RouterLink to="/tasks">
+                    <Button
+                      rightIcon={<FaChevronRight />}
                       variant="ghost"
                       size="sm"
-                      aria-label="Set reminder"
-                    />
-                  </HStack>
-                </ListItem>
-              ))}
-            </List>
-          </VStack>
-        </Box>
+                    >
+                      View All
+                    </Button>
+                  </RouterLink>
+                </HStack>
 
-        <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-          <VStack align="stretch" spacing={6}>
-            <Heading size="md">Quick Actions</Heading>
-            <SimpleGrid columns={2} spacing={4}>
-              <RouterLink to="/focus">
-                <Button
-                  leftIcon={<FaPlay />}
-                  colorScheme="blue"
-                  variant="outline"
-                  w="100%"
-                >
-                  Start Focus
-                </Button>
-              </RouterLink>
-              <RouterLink to="/tasks">
-                <Button
-                  leftIcon={<FaCheckCircle />}
-                  colorScheme="green"
-                  variant="outline"
-                  w="100%"
-                >
-                  Add Task
-                </Button>
-              </RouterLink>
-              <RouterLink to="/calendar">
-                <Button
-                  leftIcon={<FaCalendar />}
-                  colorScheme="purple"
-                  variant="outline"
-                  w="100%"
-                >
-                  Schedule
-                </Button>
-              </RouterLink>
-              <RouterLink to="/analytics">
-                <Button
-                  leftIcon={<FaClock />}
-                  colorScheme="orange"
-                  variant="outline"
-                  w="100%"
-                >
-                  Analytics
-                </Button>
-              </RouterLink>
-            </SimpleGrid>
-          </VStack>
+                <List spacing={3}>
+                  {recentTasks.map((task) => (
+                    <ListItem
+                      key={task.id}
+                      p={3}
+                      bg={useColorModeValue('gray.50', 'gray.600')}
+                      borderRadius="md"
+                    >
+                      <HStack justify="space-between">
+                        <HStack>
+                          <FaCheckCircle
+                            color={
+                              task.status === 'completed'
+                                ? '#48BB78'
+                                : task.status === 'in-progress'
+                                ? '#3182CE'
+                                : '#718096'
+                            }
+                          />
+                          <Text>{task.title}</Text>
+                        </HStack>
+                        <Badge
+                          colorScheme={
+                            task.status === 'completed'
+                              ? 'green'
+                              : task.status === 'in-progress'
+                              ? 'blue'
+                              : 'gray'
+                          }
+                        >
+                          {task.status}
+                        </Badge>
+                      </HStack>
+                    </ListItem>
+                  ))}
+                </List>
+              </VStack>
+            </Box>
+
+            <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+              <VStack align="stretch" spacing={6}>
+                <HStack justify="space-between">
+                  <Heading size="md">Upcoming Events</Heading>
+                  <RouterLink to="/calendar">
+                    <Button
+                      rightIcon={<FaChevronRight />}
+                      variant="ghost"
+                      size="sm"
+                    >
+                      View Calendar
+                    </Button>
+                  </RouterLink>
+                </HStack>
+
+                <List spacing={3}>
+                  {upcomingEvents.map((event) => (
+                    <ListItem
+                      key={event.id}
+                      p={3}
+                      bg={useColorModeValue('gray.50', 'gray.600')}
+                      borderRadius="md"
+                    >
+                      <HStack justify="space-between">
+                        <HStack spacing={4}>
+                          <FaCalendar />
+                          <Box>
+                            <Text fontWeight="medium">{event.title}</Text>
+                            <Text fontSize="sm" color="gray.500">
+                              {event.date} at {event.time}
+                            </Text>
+                          </Box>
+                        </HStack>
+                        <IconButton
+                          icon={<FaClock />}
+                          variant="ghost"
+                          size="sm"
+                          aria-label="Set reminder"
+                        />
+                      </HStack>
+                    </ListItem>
+                  ))}
+                </List>
+              </VStack>
+            </Box>
+          </SimpleGrid>
         </Box>
-      </SimpleGrid>
+      </Flex>
     </VStack>
   );
 }
 
-export default Dashboard; 
+export default Dashboard;

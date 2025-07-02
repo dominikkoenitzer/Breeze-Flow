@@ -9,7 +9,6 @@ import FocusTimer from './pages/FocusTimer'
 import Calendar from './pages/Calendar'
 import Analytics from './pages/Analytics'
 import Settings from './pages/Settings'
-import Profile from './pages/Profile'
 import Help from './pages/Help'
 import theme from './theme'
 
@@ -53,10 +52,6 @@ const router = createBrowserRouter([
       {
         path: '/settings',
         element: <Settings />,
-      },
-      {
-        path: '/profile',
-        element: <Profile />,
       },
       {
         path: '/help',

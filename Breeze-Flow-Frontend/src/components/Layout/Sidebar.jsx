@@ -23,6 +23,7 @@ import {
   FaChartLine,
   FaCog,
   FaBars,
+  FaQuestionCircle,
 } from 'react-icons/fa';
 import { useRef } from 'react';
 
@@ -64,6 +65,7 @@ function Sidebar({ isMobile, onClose }) {
     { icon: FaCalendarAlt, label: 'Calendar', to: '/calendar' },
     { icon: FaChartLine, label: 'Analytics', to: '/analytics' },
     { icon: FaCog, label: 'Settings', to: '/settings' },
+    { icon: FaQuestionCircle, label: 'Help', to: '/help' },
   ];
 
   const content = (
