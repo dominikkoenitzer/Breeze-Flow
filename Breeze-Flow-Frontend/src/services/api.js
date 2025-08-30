@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { mockApiService } from './mockApi.js';
+import { updateConnectionState } from '../utils/connectionStatus.js';
 
 /**
  * API Service Konfiguration
@@ -7,18 +9,98 @@ import axios from 'axios';
  * 
  * Technische Details:
  * - Verwendet Axios für HTTP-Anfragen
- * - Basis-URL zeigt auf Spring Boot Backend
+ * - Basis-URL dynamisch konfiguriert (dev/prod)
  * - Alle Anfragen gehen an /api/* Endpunkte
  * - Automatische JSON Serialisierung/Deserialisierung
+ * - Fallback zu Mock-Daten wenn Backend nicht verfügbar
  * 
  * Fehlerbehandlung:
  * - Automatische Fehlerbehandlung durch Axios
  * - Netzwerkfehler werden als Exceptions geworfen
  * - HTTP-Statuscode >= 400 führt zu Fehlern
+ * - Bei Netzwerkfehlern wird Mock-Service verwendet
  */
-const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
+
+// Dynamic base URL configuration
+const getBaseURL = () => {
+  // In development, use Vite env variable or localhost
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // In production, use current origin + /api
+  if (import.meta.env.PROD) {
+    return `${window.location.origin}/api`;
+  }
+  
+  // Development fallback
+  return 'http://localhost:8080/api';
+};
+
+export const api = axios.create({
+  baseURL: getBaseURL(),
+  timeout: parseInt(import.meta.env.VITE_API_TIMEOUT) || 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
+
+// Global flag to track if backend is available
+let backendAvailable = true;
+
+// Helper function to handle API calls with fallback to mock
+const apiCall = async (apiFunction, mockFunction, ...args) => {
+  // Force mock mode if environment variable is set
+  if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
+    if (import.meta.env.VITE_DEBUG_API === 'true') {
+      console.log('🔄 Using mock data (forced by environment)');
+    }
+    updateConnectionState(false, true);
+    return await mockFunction(...args);
+  }
+
+  if (!backendAvailable) {
+    if (import.meta.env.VITE_DEBUG_API === 'true') {
+      console.log('🔄 Using mock data (backend unavailable)');
+    }
+    updateConnectionState(false, true);
+    return await mockFunction(...args);
+  }
+
+  try {
+    const result = await apiFunction(...args);
+    // If this is the first successful call after being disconnected, update status
+    if (!backendAvailable) {
+      backendAvailable = true;
+      updateConnectionState(true, false);
+      if (import.meta.env.VITE_DEBUG_API === 'true') {
+        console.log('✅ Backend connection restored');
+      }
+    }
+    return result;
+  } catch (error) {
+    // If it's a network error, switch to mock mode
+    if (error.code === 'ECONNREFUSED' || 
+        error.code === 'ERR_NETWORK' || 
+        error.code === 'ENOTFOUND' ||
+        !error.response) {
+      
+      if (import.meta.env.VITE_DEBUG_API === 'true') {
+        console.warn('⚠️ Backend unavailable, switching to mock data:', error.message);
+      }
+      
+      backendAvailable = false;
+      updateConnectionState(false, true);
+      return await mockFunction(...args);
+    }
+    
+    // Re-throw other errors (like 400, 401, etc.)
+    if (import.meta.env.VITE_DEBUG_API === 'true') {
+      console.error('❌ API Error:', error.response?.status, error.message);
+    }
+    throw error;
+  }
+};
 
 // ========================================
 // Aufgaben-Verwaltung (Tasks)
@@ -40,8 +122,14 @@ const api = axios.create({
  * @throws {Error} Bei ungültigen Daten oder Netzwerkfehlern
  */
 export const createTask = async (task) => {
-  const response = await api.post('/tasks', task);
-  return response.data;
+  return apiCall(
+    async () => {
+      const response = await api.post('/tasks', task);
+      return response.data;
+    },
+    mockApiService.createTask,
+    task
+  );
 };
 
 /**
@@ -58,8 +146,13 @@ export const createTask = async (task) => {
  * @throws {Error} Bei Netzwerkfehlern
  */
 export const getTasks = async () => {
-  const response = await api.get('/tasks');
-  return response.data;
+  return apiCall(
+    async () => {
+      const response = await api.get('/tasks');
+      return response.data;
+    },
+    mockApiService.getTasks
+  );
 };
 
 /**
@@ -75,8 +168,15 @@ export const getTasks = async () => {
  * @throws {Error} Bei ungültiger ID oder Netzwerkfehlern
  */
 export const updateTask = async (taskId, task) => {
-  const response = await api.put(`/tasks/${taskId}`, task);
-  return response.data;
+  return apiCall(
+    async () => {
+      const response = await api.put(`/tasks/${taskId}`, task);
+      return response.data;
+    },
+    mockApiService.updateTask,
+    taskId,
+    task
+  );
 };
 
 /**
@@ -91,8 +191,14 @@ export const updateTask = async (taskId, task) => {
  * @throws {Error} Bei ungültiger ID oder Netzwerkfehlern
  */
 export const deleteTask = async (taskId) => {
-  const response = await api.delete(`/tasks/${taskId}`);
-  return response.data;
+  return apiCall(
+    async () => {
+      const response = await api.delete(`/tasks/${taskId}`);
+      return response.data;
+    },
+    mockApiService.deleteTask,
+    taskId
+  );
 };
 
 // ========================================
@@ -115,8 +221,14 @@ export const deleteTask = async (taskId) => {
  * @throws {Error} Bei ungültigen Daten
  */
 export const saveFocusSession = async (session) => {
-  const response = await api.post('/focus-sessions', session);
-  return response.data;
+  return apiCall(
+    async () => {
+      const response = await api.post('/focus-sessions', session);
+      return response.data;
+    },
+    mockApiService.saveFocusSession,
+    session
+  );
 };
 
 /**
@@ -132,8 +244,13 @@ export const saveFocusSession = async (session) => {
  * @throws {Error} Bei Netzwerkfehlern
  */
 export const getFocusSessions = async () => {
-  const response = await api.get('/focus-sessions');
-  return response.data;
+  return apiCall(
+    async () => {
+      const response = await api.get('/focus-sessions');
+      return response.data;
+    },
+    mockApiService.getFocusSessions
+  );
 };
 
 // ========================================
@@ -142,82 +259,58 @@ export const getFocusSessions = async () => {
 
 /**
  * Termin erstellen
- * 
- * Erstellt einen neuen Kalendereintrag mit:
- * - title: Titel des Termins (erforderlich)
- * - startDate: Startdatum und -zeit (erforderlich, ISO-8601)
- * - endDate: Enddatum und -zeit (erforderlich, ISO-8601)
- * - description: Beschreibung (optional)
- * - category: Kategorie (optional, z.B. "MEETING", "TASK")
- * - location: Ort des Termins (optional)
- * - participants: Array von Teilnehmern (optional)
- * - reminder: Erinnerungszeit in Minuten (optional)
- * 
- * @param {Object} event - Termindaten
- * @returns {Promise} Erstellter Termin
- * @throws {Error} Bei Validierungsfehlern
  */
 export const createEvent = async (event) => {
-  const response = await api.post('/events', event);
-  return response.data;
+  return apiCall(
+    async () => {
+      const response = await api.post('/events', event);
+      return response.data;
+    },
+    mockApiService.createEvent,
+    event
+  );
 };
 
 /**
  * Termine abrufen
- * 
- * Ruft alle Termine im angegebenen Zeitraum ab
- * Filter-Optionen:
- * - startDate: Beginn des Zeitraums (ISO-8601)
- * - endDate: Ende des Zeitraums (ISO-8601)
- * - category: Filtert nach Kategorie
- * - status: "UPCOMING", "PAST", "CANCELLED"
- * 
- * Sortierung:
- * - Standardmäßig nach Startdatum aufsteigend
- * - Vergangene Termine werden nicht automatisch gelöscht
- * 
- * @returns {Promise} Liste aller Termine
- * @throws {Error} Bei ungültigen Filterkriterien
  */
 export const getEvents = async () => {
-  const response = await api.get('/events');
-  return response.data;
+  return apiCall(
+    async () => {
+      const response = await api.get('/events');
+      return response.data;
+    },
+    mockApiService.getEvents
+  );
 };
 
 /**
  * Termin aktualisieren
- * 
- * Aktualisiert einen bestehenden Termin
- * Nur geänderte Felder müssen übergeben werden
- * Validierung:
- * - Startzeit muss vor Endzeit liegen
- * - Titel darf nicht leer sein
- * 
- * @param {string} eventId - Termin-ID
- * @param {Object} event - Aktualisierte Daten
- * @returns {Promise} Aktualisierter Termin
- * @throws {Error} Bei Validierungs- oder Netzwerkfehlern
  */
 export const updateEvent = async (eventId, event) => {
-  const response = await api.put(`/events/${eventId}`, event);
-  return response.data;
+  return apiCall(
+    async () => {
+      const response = await api.put(`/events/${eventId}`, event);
+      return response.data;
+    },
+    mockApiService.updateEvent,
+    eventId,
+    event
+  );
 };
 
 /**
  * Termin löschen
- * 
- * Löscht einen Termin permanent
- * Optionen:
- * - Einzelner Termin oder Serie
- * - Benachrichtigung an Teilnehmer optional
- * 
- * @param {string} eventId - Termin-ID
- * @returns {Promise} Löschbestätigung
- * @throws {Error} Bei ungültiger ID oder fehlenden Rechten
  */
 export const deleteEvent = async (eventId) => {
-  const response = await api.delete(`/events/${eventId}`);
-  return response.data;
+  return apiCall(
+    async () => {
+      const response = await api.delete(`/events/${eventId}`);
+      return response.data;
+    },
+    mockApiService.deleteEvent,
+    eventId
+  );
 };
 
 // ========================================
@@ -226,51 +319,209 @@ export const deleteEvent = async (eventId) => {
 
 /**
  * Einstellungen abrufen
- * 
- * Lädt die Benutzereinstellungen:
- * - theme: Design-Theme ("LIGHT", "DARK", "SYSTEM")
- * - notifications: Benachrichtigungseinstellungen
- *   - email: Boolean
- *   - push: Boolean
- *   - desktop: Boolean
- * - workHours: Arbeitszeiten
- *   - start: "HH:mm"
- *   - end: "HH:mm"
- *   - workDays: Array von Wochentagen
- * - focusSettings: Pomodoro-Einstellungen
- *   - workDuration: Minuten
- *   - breakDuration: Minuten
- *   - longBreakDuration: Minuten
- *   - sessionsUntilLongBreak: Anzahl
- * 
- * @returns {Promise} Aktuelle Benutzereinstellungen
- * @throws {Error} Bei Authentifizierungsfehlern
  */
 export const getSettings = async () => {
-  const response = await api.get('/settings');
-  return response.data;
+  return apiCall(
+    async () => {
+      const response = await api.get('/settings');
+      return response.data;
+    },
+    mockApiService.getSettings
+  );
 };
 
 /**
  * Einstellungen aktualisieren
- * 
- * Aktualisiert die Benutzereinstellungen
- * Alle Einstellungen sind optional und werden
- * mit den bestehenden Einstellungen zusammengeführt
- * 
- * Validierung:
- * - Arbeitsstunden müssen gültige Uhrzeiten sein
- * - Pomodoro-Dauern müssen > 0 sein
- * - Theme muss einen gültigen Wert haben
- * 
- * @param {Object} settings - Neue Einstellungen
- * @returns {Promise} Aktualisierte Einstellungen
- * @throws {Error} Bei Validierungsfehlern
  */
 export const updateSettings = async (settings) => {
-  const response = await api.put('/settings', settings);
-  return response.data;
+  return apiCall(
+    async () => {
+      const response = await api.put('/settings', settings);
+      return response.data;
+    },
+    mockApiService.updateSettings,
+    settings
+  );
 };
+
+// ========================================
+// Wellness Tracking
+// ========================================
+
+/**
+ * Wellness-Statistiken abrufen
+ */
+export const getWellnessStats = async () => {
+  return apiCall(
+    async () => {
+      const response = await api.get('/wellness/stats');
+      return response.data;
+    },
+    mockApiService.getWellnessStats
+  );
+};
+
+/**
+ * Wellness Check-in erstellen
+ */
+export const createWellnessCheckin = async (checkin) => {
+  return apiCall(
+    async () => {
+      const response = await api.post('/wellness/checkins', checkin);
+      return response.data;
+    },
+    mockApiService.createWellnessCheckin,
+    checkin
+  );
+};
+
+// ========================================
+// Support System
+// ========================================
+
+/**
+ * Support-Ticket einreichen
+ */
+export const submitSupportTicket = async (ticket) => {
+  return apiCall(
+    async () => {
+      const response = await api.post('/support/tickets', ticket);
+      return response.data;
+    },
+    mockApiService.submitSupportTicket,
+    ticket
+  );
+};
+
+// ========================================
+// Test System (Development)
+// ========================================
+
+/**
+ * Alle Tests abrufen
+ */
+export const getAllTests = async () => {
+  return apiCall(
+    async () => {
+      const response = await api.get('/tests');
+      return response.data;
+    },
+    mockApiService.getAllTests
+  );
+};
+
+/**
+ * Test erstellen
+ */
+export const createTest = async (test) => {
+  return apiCall(
+    async () => {
+      const response = await api.post('/tests', test);
+      return response.data;
+    },
+    mockApiService.createTest,
+    test
+  );
+};
+
+/**
+ * Test aktualisieren
+ */
+export const updateTest = async (id, test) => {
+  return apiCall(
+    async () => {
+      const response = await api.put(`/tests/${id}`, test);
+      return response.data;
+    },
+    mockApiService.updateTest,
+    id,
+    test
+  );
+};
+
+/**
+ * Test löschen
+ */
+export const deleteTest = async (id) => {
+  return apiCall(
+    async () => {
+      const response = await api.delete(`/tests/${id}`);
+      return response.data;
+    },
+    mockApiService.deleteTest,
+    id
+  );
+};
+
+// ========================================
+// Profile & Account Management
+// ========================================
+
+/**
+ * Profil aktualisieren
+ */
+export const updateProfile = async (profile) => {
+  return apiCall(
+    async () => {
+      const response = await api.put('/profile', profile);
+      return response.data;
+    },
+    mockApiService.updateProfile,
+    profile
+  );
+};
+
+/**
+ * Account löschen
+ */
+export const deleteAccount = async () => {
+  return apiCall(
+    async () => {
+      const response = await api.delete('/account');
+      return response.data;
+    },
+    mockApiService.deleteAccount
+  );
+};
+
+// ========================================
+// Attach methods to api instance for direct usage
+// ========================================
+
+// Task methods
+api.createTask = createTask;
+api.getTasks = getTasks;
+api.updateTask = updateTask;
+api.deleteTask = deleteTask;
+
+// Focus session methods
+api.saveFocusSession = saveFocusSession;
+api.getFocusSessions = getFocusSessions;
+
+// Event methods
+api.createEvent = createEvent;
+api.getEvents = getEvents;
+api.updateEvent = updateEvent;
+api.deleteEvent = deleteEvent;
+
+// Settings methods
+api.getSettings = getSettings;
+api.updateSettings = updateSettings;
+api.updateProfile = updateProfile;
+api.deleteAccount = deleteAccount;
+
+// Wellness methods
+api.getWellnessStats = getWellnessStats;
+api.createWellnessCheckin = createWellnessCheckin;
+
+// Support methods
+api.submitSupportTicket = submitSupportTicket;
+
+// Test methods
+api.getAllTests = getAllTests;
+api.createTest = createTest;
+api.updateTest = updateTest;
+api.deleteTest = deleteTest;
 
 // Exportiert die API-Instanz für direkte Verwendung
 export default api;

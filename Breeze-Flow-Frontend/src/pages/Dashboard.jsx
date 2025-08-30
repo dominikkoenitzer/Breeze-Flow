@@ -1,249 +1,264 @@
-import { useState } from 'react';
-import {
-  Box,
-  VStack,
-  SimpleGrid,
-  Text,
-  Heading,
-  useColorModeValue,
-  Progress,
-  HStack,
-  Button,
-  List,
-  ListItem,
-  IconButton,
-  Badge,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
-  StatArrow,
-  Flex,
-} from '@chakra-ui/react';
-import {
-  FaCheckCircle,
-  FaClock,
-  FaCalendar,
-  FaChevronRight,
-  FaPlay,
-} from 'react-icons/fa';
-import { Link as RouterLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { 
+  Timer, 
+  CheckSquare, 
+  Calendar,
+  TrendingUp,
+  Play,
+  Plus,
+  Clock,
+  Target
+} from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import localStorageService from '../services/localStorage';
 
 function Dashboard() {
-  const bg = useColorModeValue('white', 'gray.700');
-  const borderColor = useColorModeValue('gray.200', 'gray.600');
+  const [stats, setStats] = useState({
+    todayFocusTime: 0,
+    todaySessions: 0,
+    activeTasks: 0,
+    completedTasks: 0,
+    overdueTasks: 0
+  });
+  const [recentTasks, setRecentTasks] = useState([]);
+  const [timerState, setTimerState] = useState(null);
 
-  // Sample data - replace with real data from your backend
-  const stats = {
-    focusTime: '4h 30m',
-    tasksCompleted: 8,
-    upcomingEvents: 3,
-    focusProgress: 75,
-    taskProgress: 60,
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = () => {
+    // Load focus stats
+    const sessions = localStorageService.getFocusSessions();
+    const today = new Date().toDateString();
+    const todaySessions = sessions.filter(session => 
+      new Date(session.date).toDateString() === today
+    );
+    
+    // Load task stats
+    const tasks = localStorageService.getTasks();
+    const activeTasks = tasks.filter(task => !task.completed);
+    const completedTasks = tasks.filter(task => task.completed);
+    const overdueTasks = tasks.filter(task => 
+      !task.completed && task.dueDate && new Date(task.dueDate) < new Date()
+    );
+
+    // Get recent tasks (last 5 active tasks)
+    const recentActiveTasks = activeTasks
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 5);
+
+    // Load timer state
+    const currentTimerState = localStorageService.getTimerState();
+
+    setStats({
+      todayFocusTime: todaySessions.reduce((total, session) => total + session.duration, 0),
+      todaySessions: todaySessions.length,
+      activeTasks: activeTasks.length,
+      completedTasks: completedTasks.length,
+      overdueTasks: overdueTasks.length
+    });
+    
+    setRecentTasks(recentActiveTasks);
+    setTimerState(currentTimerState);
   };
 
-  const recentTasks = [
-    { id: 1, title: 'Complete project proposal', status: 'completed' },
-    { id: 2, title: 'Review documentation', status: 'in-progress' },
-    { id: 3, title: 'Team meeting preparation', status: 'pending' },
-  ];
+  const formatTime = (minutes) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours > 0) {
+      return `${hours}h ${mins}m`;
+    }
+    return `${mins}m`;
+  };
 
-  const upcomingEvents = [
-    { id: 1, title: 'Team Sync', time: '2:00 PM', date: 'Today' },
-    { id: 2, title: 'Project Review', time: '10:00 AM', date: 'Tomorrow' },
-    { id: 3, title: 'Client Meeting', time: '3:30 PM', date: 'Tomorrow' },
-  ];
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
 
   return (
-    <VStack spacing={8} align="stretch">
-      <Box>
-        <Heading size="lg" mb={2}>
-          Welcome Back!
-        </Heading>
-        <Text color="gray.500">Here's an overview of your productivity</Text>
-      </Box>
+    <div className="container mx-auto max-w-7xl space-y-8">
+      {/* Welcome Section */}
+      <div className="space-y-4">
+        <h1 className="text-4xl font-bold text-foreground">
+          {getGreeting()}! 👋
+        </h1>
+        <p className="text-xl text-muted-foreground">
+          Ready to be productive today?
+        </p>
+      </div>
 
-      <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
-        <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-          <Stat>
-            <StatLabel>Focus Time Today</StatLabel>
-            <StatNumber>{stats.focusTime}</StatNumber>
-            <StatHelpText>
-              <StatArrow type="increase" />
-              20% vs. yesterday
-            </StatHelpText>
-          </Stat>
-        </Box>
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Focus Time Today</CardTitle>
+            <Timer className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatTime(stats.todayFocusTime)}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.todaySessions} sessions completed
+            </p>
+          </CardContent>
+        </Card>
 
-        <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-          <Stat>
-            <StatLabel>Tasks Completed</StatLabel>
-            <StatNumber>{stats.tasksCompleted}</StatNumber>
-            <StatHelpText>
-              <StatArrow type="increase" />
-              15% this week
-            </StatHelpText>
-          </Stat>
-        </Box>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Tasks</CardTitle>
+            <CheckSquare className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.activeTasks}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.overdueTasks} overdue
+            </p>
+          </CardContent>
+        </Card>
 
-        <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-          <Stat>
-            <StatLabel>Upcoming Events</StatLabel>
-            <StatNumber>{stats.upcomingEvents}</StatNumber>
-            <StatHelpText>
-              Next event in 2 hours
-            </StatHelpText>
-          </Stat>
-        </Box>
-      </SimpleGrid>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Completed Tasks</CardTitle>
+            <Target className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.completedTasks}</div>
+            <p className="text-xs text-muted-foreground">
+              All time
+            </p>
+          </CardContent>
+        </Card>
 
-      <Flex direction={{ base: 'column', lg: 'row' }} gap={6} align="start">
-        <Box flex={2} w="100%">
-          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-            <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-              <VStack align="stretch" spacing={6}>
-                <HStack justify="space-between">
-                  <Heading size="md">Today's Progress</Heading>
-                  <RouterLink to="/focus">
-                    <Button
-                      rightIcon={<FaPlay />}
-                      colorScheme="blue"
-                      size="sm"
-                    >
-                      Start Focus Session
-                    </Button>
-                  </RouterLink>
-                </HStack>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Productivity</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats.completedTasks > 0 
+                ? Math.round((stats.completedTasks / (stats.completedTasks + stats.activeTasks)) * 100)
+                : 0}%
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Completion rate
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
-                <Box>
-                  <HStack justify="space-between" mb={2}>
-                    <Text>Daily Focus Goal</Text>
-                    <Text>{stats.focusProgress}%</Text>
-                  </HStack>
-                  <Progress
-                    value={stats.focusProgress}
-                    colorScheme="blue"
-                    borderRadius="full"
-                  />
-                </Box>
+      {/* Quick Actions & Timer Status */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Button asChild className="h-auto p-4">
+                <Link to="/focus" className="flex flex-col items-center space-y-2">
+                  <Play className="h-6 w-6" />
+                  <span>Start Focus Session</span>
+                </Link>
+              </Button>
+              
+              <Button asChild variant="outline" className="h-auto p-4">
+                <Link to="/tasks" className="flex flex-col items-center space-y-2">
+                  <Plus className="h-6 w-6" />
+                  <span>Add New Task</span>
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-                <Box>
-                  <HStack justify="space-between" mb={2}>
-                    <Text>Task Completion</Text>
-                    <Text>{stats.taskProgress}%</Text>
-                  </HStack>
-                  <Progress
-                    value={stats.taskProgress}
-                    colorScheme="green"
-                    borderRadius="full"
-                  />
-                </Box>
-              </VStack>
-            </Box>
+        {/* Timer Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Timer Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {timerState && timerState.isActive ? (
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-5 w-5 text-primary animate-pulse" />
+                  <span className="text-lg font-medium">Timer is running</span>
+                </div>
+                <div className="text-2xl font-mono font-bold">
+                  {Math.floor(timerState.timeLeft / 60).toString().padStart(2, '0')}:
+                  {(timerState.timeLeft % 60).toString().padStart(2, '0')}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {timerState.currentSessionType === 'work' ? 'Focus session' : 'Break time'}
+                </p>
+                <Button asChild className="w-full">
+                  <Link to="/focus">Continue Session</Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center space-y-4">
+                <div className="text-muted-foreground">
+                  No active timer session
+                </div>
+                <Button asChild className="w-full">
+                  <Link to="/focus">Start New Session</Link>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
-            <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-              <VStack align="stretch" spacing={6}>
-                <HStack justify="space-between">
-                  <Heading size="md">Recent Tasks</Heading>
-                  <RouterLink to="/tasks">
-                    <Button
-                      rightIcon={<FaChevronRight />}
-                      variant="ghost"
-                      size="sm"
-                    >
-                      View All
-                    </Button>
-                  </RouterLink>
-                </HStack>
-
-                <List spacing={3}>
-                  {recentTasks.map((task) => (
-                    <ListItem
-                      key={task.id}
-                      p={3}
-                      bg={useColorModeValue('gray.50', 'gray.600')}
-                      borderRadius="md"
-                    >
-                      <HStack justify="space-between">
-                        <HStack>
-                          <FaCheckCircle
-                            color={
-                              task.status === 'completed'
-                                ? '#48BB78'
-                                : task.status === 'in-progress'
-                                ? '#3182CE'
-                                : '#718096'
-                            }
-                          />
-                          <Text>{task.title}</Text>
-                        </HStack>
-                        <Badge
-                          colorScheme={
-                            task.status === 'completed'
-                              ? 'green'
-                              : task.status === 'in-progress'
-                              ? 'blue'
-                              : 'gray'
-                          }
-                        >
-                          {task.status}
-                        </Badge>
-                      </HStack>
-                    </ListItem>
-                  ))}
-                </List>
-              </VStack>
-            </Box>
-
-            <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-              <VStack align="stretch" spacing={6}>
-                <HStack justify="space-between">
-                  <Heading size="md">Upcoming Events</Heading>
-                  <RouterLink to="/calendar">
-                    <Button
-                      rightIcon={<FaChevronRight />}
-                      variant="ghost"
-                      size="sm"
-                    >
-                      View Calendar
-                    </Button>
-                  </RouterLink>
-                </HStack>
-
-                <List spacing={3}>
-                  {upcomingEvents.map((event) => (
-                    <ListItem
-                      key={event.id}
-                      p={3}
-                      bg={useColorModeValue('gray.50', 'gray.600')}
-                      borderRadius="md"
-                    >
-                      <HStack justify="space-between">
-                        <HStack spacing={4}>
-                          <FaCalendar />
-                          <Box>
-                            <Text fontWeight="medium">{event.title}</Text>
-                            <Text fontSize="sm" color="gray.500">
-                              {event.date} at {event.time}
-                            </Text>
-                          </Box>
-                        </HStack>
-                        <IconButton
-                          icon={<FaClock />}
-                          variant="ghost"
-                          size="sm"
-                          aria-label="Set reminder"
-                        />
-                      </HStack>
-                    </ListItem>
-                  ))}
-                </List>
-              </VStack>
-            </Box>
-          </SimpleGrid>
-        </Box>
-      </Flex>
-    </VStack>
+      {/* Recent Tasks */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Recent Tasks</CardTitle>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/tasks">View All</Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {recentTasks.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-4">No tasks yet</p>
+              <Button asChild>
+                <Link to="/tasks">Create Your First Task</Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentTasks.map(task => (
+                <div key={task.id} className="flex items-center space-x-3 p-3 rounded-lg border">
+                  <div className={`w-3 h-3 rounded-full ${
+                    task.priority === 'high' ? 'bg-red-500' :
+                    task.priority === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                  }`} />
+                  <div className="flex-1">
+                    <h4 className="font-medium text-foreground">{task.title}</h4>
+                    {task.dueDate && (
+                      <p className="text-sm text-muted-foreground">
+                        Due: {new Date(task.dueDate).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                  {task.dueDate && new Date(task.dueDate) < new Date() && (
+                    <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                      Overdue
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

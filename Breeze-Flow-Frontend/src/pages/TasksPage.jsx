@@ -1,927 +1,440 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  Box,
-  VStack,
-  HStack,
-  Text,
-  Heading,
-  useColorModeValue,
-  Input,
-  IconButton,
-  Button,
-  List,
-  ListItem,
-  Checkbox,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  Badge,
-  useToast,
-  Select,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
-  Drawer,
-  DrawerBody,
-  DrawerHeader,
-  DrawerOverlay,
-  DrawerContent,
-  DrawerCloseButton,
-  FormControl,
-  FormLabel,
-  Textarea,
-  useDisclosure,
-  Spinner,
-  Collapse,
-  Tooltip,
-  Tag,
-  TagLabel,
-  TagLeftIcon,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
-  Flex,
-  Divider,
-  Progress,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
-  Card,
-  CardBody,
-  CardHeader,
-  CardFooter,
-  useBreakpointValue,
-  SlideFade,
-  SimpleGrid,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
-} from '@chakra-ui/react';
-import {
-  FaEllipsisV,
-  FaPlus,
-  FaTrash,
-  FaEdit,
-  FaClock,
-  FaCalendarAlt,
-  FaFlag,
-  FaCheckCircle,
-  FaExclamationCircle,
-  FaChevronDown,
-  FaChevronUp,
-  FaInfoCircle,
-} from 'react-icons/fa';
-import { createTask, getTasks, updateTask, deleteTask } from '../services/api';
-import { motion } from 'framer-motion';
-import { ErrorBoundary } from 'react-error-boundary';
-
-// Define MotionListItem component
-const MotionListItem = motion(ListItem);
-
-function ErrorFallback({ error, resetErrorBoundary }) {
-  return (
-    <Alert
-      status="error"
-      variant="subtle"
-      flexDirection="column"
-      alignItems="center"
-      justifyContent="center"
-      textAlign="center"
-      height="200px"
-      borderRadius="lg"
-    >
-      <AlertIcon boxSize="40px" mr={0} />
-      <AlertTitle mt={4} mb={1} fontSize="lg">
-        Something went wrong!
-      </AlertTitle>
-      <AlertDescription maxWidth="sm" mb={4}>
-        {error.message}
-      </AlertDescription>
-      <Button colorScheme="red" onClick={resetErrorBoundary}>
-        Try again
-      </Button>
-    </Alert>
-  );
-}
+import React, { useState, useEffect } from 'react';
+import { 
+  Plus, 
+  Search, 
+  Filter, 
+  Check, 
+  Edit, 
+  Trash2, 
+  Calendar,
+  AlertCircle,
+  CheckCircle,
+  Clock
+} from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Input } from '../components/ui/input';
+import { Checkbox } from '../components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import localStorageService from '../services/localStorage';
 
 function TasksPage() {
-  // State hooks
   const [tasks, setTasks] = useState([]);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [filteredTasks, setFilteredTasks] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [expandedTask, setExpandedTask] = useState(null);
-  const [taskToDelete, setTaskToDelete] = useState(null);
-  const [selectedTab, setSelectedTab] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [newTask, setNewTask] = useState({
+    title: '',
+    description: '',
+    priority: 'medium',
+    dueDate: '',
+    category: 'personal'
+  });
 
-  // Disclosure hooks
-  const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
-  const { isOpen: isAlertOpen, onOpen: onAlertOpen, onClose: onAlertClose } = useDisclosure();
-  const cancelRef = useCallback(ref => ref, []);
-
-  // Theme hooks
-  const toast = useToast();
-  const bg = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.700');
-  const hoverBg = useColorModeValue('gray.50', 'gray.700');
-  const cardBg = useColorModeValue('gray.50', 'gray.700');
-  const textColor = useColorModeValue('gray.800', 'white');
-  const mutedColor = useColorModeValue('gray.600', 'gray.400');
-  const isMobile = useBreakpointValue({ base: true, md: false });
-
-  // Memoized values
-  const taskStats = useMemo(() => {
-    const total = tasks.length;
-    const completed = tasks.filter(t => t.completed).length;
-    const high = tasks.filter(t => t.priority === 'high').length;
-    const progress = total ? (completed / total) * 100 : 0;
-    
-    return { total, completed, high, progress };
-  }, [tasks]);
-
-  const filteredTasks = useMemo(() => {
-    const filtered = tasks.filter(task => 
-      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.notes?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    switch (selectedTab) {
-      case 1:
-        return filtered.filter(task => !task.completed);
-      case 2:
-        return filtered.filter(task => task.completed);
-      default:
-        return filtered;
-    }
-  }, [tasks, selectedTab, searchQuery]);
-
-  // Callbacks
-  const fetchTasks = useCallback(async () => {
-    try {
-      const data = await getTasks();
-      setTasks(data || []);
-      setIsLoading(false);
-    } catch (error) {
-      toast({
-        title: 'Error fetching tasks',
-        description: error.message,
-        status: 'error',
-        duration: 3000,
-      });
-      setIsLoading(false);
-    }
-  }, [toast]);
-
-  const handleAddTask = useCallback(async () => {
-    if (!newTaskTitle.trim()) return;
-
-    try {
-      const newTask = {
-        title: newTaskTitle,
-        completed: false,
-        priority: 'medium',
-        dueDate: '',
-        notes: '',
-        createdAt: new Date().toISOString(),
-      };
-      const createdTask = await createTask(newTask);
-      if (createdTask) {
-        setTasks(prevTasks => [...prevTasks, createdTask]);
-        setNewTaskTitle('');
-        toast({
-          title: 'Task added',
-          status: 'success',
-          duration: 2000,
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'Error adding task',
-        description: error.message,
-        status: 'error',
-        duration: 3000,
-      });
-    }
-  }, [newTaskTitle, toast]);
-
-  const handleToggleTask = useCallback(async (taskId) => {
-    if (!taskId) return;
-
-    try {
-      const task = tasks.find((t) => t.id === taskId);
-      if (!task) return;
-
-      const updatedTask = { ...task, completed: !task.completed };
-      const result = await updateTask(taskId, updatedTask);
-      
-      if (result) {
-        setTasks(prevTasks =>
-          prevTasks.map((t) => t.id === taskId ? result : t)
-        );
-        toast({
-          title: result.completed ? 'Task completed!' : 'Task reopened',
-          status: 'success',
-          duration: 1500,
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'Error updating task',
-        description: error.message,
-        status: 'error',
-        duration: 3000,
-      });
-    }
-  }, [tasks, toast]);
-
-  const handleDeleteConfirm = useCallback(async () => {
-    if (!taskToDelete?.id) return;
-
-    try {
-      await deleteTask(taskToDelete.id);
-      setTasks(prevTasks => prevTasks.filter((task) => task.id !== taskToDelete.id));
-      toast({
-        title: 'Task deleted',
-        status: 'success',
-        duration: 2000,
-      });
-      onAlertClose();
-      setTaskToDelete(null);
-    } catch (error) {
-      toast({
-        title: 'Error deleting task',
-        description: error.message,
-        status: 'error',
-        duration: 3000,
-      });
-    }
-  }, [taskToDelete, toast, onAlertClose]);
-
-  const handleEditTask = useCallback((task) => {
-    if (!task) return;
-    setEditingTask(task);
-    onDrawerOpen();
-  }, [onDrawerOpen]);
-
-  const handleUpdateTask = useCallback(async () => {
-    if (!editingTask?.id) return;
-
-    try {
-      const updatedTask = await updateTask(editingTask.id, editingTask);
-      if (updatedTask) {
-        setTasks(prevTasks =>
-          prevTasks.map((task) =>
-            task.id === editingTask.id ? updatedTask : task
-          )
-        );
-        onDrawerClose();
-        toast({
-          title: 'Task updated',
-          status: 'success',
-          duration: 2000,
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'Error updating task',
-        description: error.message,
-        status: 'error',
-        duration: 3000,
-      });
-    }
-  }, [editingTask, onDrawerClose, toast]);
-
-  const handleExpandTask = useCallback((taskId) => {
-    setExpandedTask(expandedTask === taskId ? null : taskId);
-  }, [expandedTask]);
-
-  // Effects
   useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
-
-  const getPriorityIcon = useCallback((priority) => {
-    switch (priority) {
-      case 'high':
-        return FaExclamationCircle;
-      case 'medium':
-        return FaFlag;
-      case 'low':
-        return FaCheckCircle;
-      default:
-        return FaFlag;
-    }
+    loadTasks();
   }, []);
 
-  const getPriorityColor = useCallback((priority) => {
+  useEffect(() => {
+    filterTasks();
+  }, [tasks, searchTerm, selectedFilter]);
+
+  const loadTasks = () => {
+    const storedTasks = localStorageService.getTasks();
+    setTasks(storedTasks);
+  };
+
+  const filterTasks = () => {
+    let filtered = tasks;
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(task =>
+        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply status filter
+    switch (selectedFilter) {
+      case 'active':
+        filtered = filtered.filter(task => !task.completed);
+        break;
+      case 'completed':
+        filtered = filtered.filter(task => task.completed);
+        break;
+      case 'overdue':
+        filtered = filtered.filter(task => 
+          !task.completed && task.dueDate && new Date(task.dueDate) < new Date()
+        );
+        break;
+      default:
+        // 'all' - no additional filtering
+        break;
+    }
+
+    setFilteredTasks(filtered);
+  };
+
+  const addTask = () => {
+    if (!newTask.title.trim()) return;
+
+    const task = localStorageService.addTask(newTask);
+    setTasks(prev => [...prev, task]);
+    setNewTask({
+      title: '',
+      description: '',
+      priority: 'medium',
+      dueDate: '',
+      category: 'personal'
+    });
+    setIsAddDialogOpen(false);
+  };
+
+  const updateTask = (taskId, updates) => {
+    const updatedTask = localStorageService.updateTask(taskId, updates);
+    if (updatedTask) {
+      setTasks(prev => prev.map(task => task.id === taskId ? updatedTask : task));
+    }
+  };
+
+  const deleteTask = (taskId) => {
+    localStorageService.deleteTask(taskId);
+    setTasks(prev => prev.filter(task => task.id !== taskId));
+  };
+
+  const toggleTaskComplete = (taskId, completed) => {
+    updateTask(taskId, { completed });
+  };
+
+  const startEditTask = (task) => {
+    setEditingTask(task);
+    setNewTask({
+      title: task.title,
+      description: task.description || '',
+      priority: task.priority || 'medium',
+      dueDate: task.dueDate || '',
+      category: task.category || 'personal'
+    });
+  };
+
+  const saveEditTask = () => {
+    if (!newTask.title.trim()) return;
+
+    updateTask(editingTask.id, newTask);
+    setEditingTask(null);
+    setNewTask({
+      title: '',
+      description: '',
+      priority: 'medium',
+      dueDate: '',
+      category: 'personal'
+    });
+  };
+
+  const getPriorityIcon = (priority) => {
     switch (priority) {
       case 'high':
-        return 'red';
+        return <AlertCircle className="h-4 w-4 text-red-500" />;
       case 'medium':
-        return 'yellow';
+        return <Clock className="h-4 w-4 text-yellow-500" />;
       case 'low':
-        return 'green';
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
       default:
-        return 'gray';
+        return <Clock className="h-4 w-4 text-gray-500" />;
     }
-  }, []);
+  };
 
-  if (isLoading) {
-    return (
-      <Box textAlign="center" py={10}>
-        <Spinner size="xl" />
-        <Text mt={4}>Loading tasks...</Text>
-      </Box>
-    );
-  }
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'high': return 'border-l-red-500';
+      case 'medium': return 'border-l-yellow-500';
+      case 'low': return 'border-l-green-500';
+      default: return 'border-l-gray-500';
+    }
+  };
+
+  const isOverdue = (dueDate) => {
+    return dueDate && new Date(dueDate) < new Date() && !tasks.find(t => t.dueDate === dueDate)?.completed;
+  };
+
+  const getTaskCounts = () => {
+    const total = tasks.length;
+    const active = tasks.filter(task => !task.completed).length;
+    const completed = tasks.filter(task => task.completed).length;
+    const overdue = tasks.filter(task => 
+      !task.completed && task.dueDate && new Date(task.dueDate) < new Date()
+    ).length;
+
+    return { total, active, completed, overdue };
+  };
+
+  const taskCounts = getTaskCounts();
 
   return (
-    <>
-      <Box maxW="900px" mx="auto" mt={8} p={{ base: 2, md: 6 }}>
-        <Card boxShadow="xl" borderRadius="2xl" p={6}>
-          <CardHeader>
-            <Heading size="lg" mb={2}>Your Tasks</Heading>
-            <Text color="gray.500" fontSize="md">Organize, prioritize, and track your tasks easily.</Text>
-          </CardHeader>
-          <CardBody>
-            <VStack spacing={8} align="stretch">
-              <Box>
-                <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
-                  <Card bg={bg}>
-                    <CardBody>
-                      <Stat>
-                        <StatLabel>Total Tasks</StatLabel>
-                        <StatNumber>{taskStats.total}</StatNumber>
-                        <StatHelpText>
-                          {taskStats.completed} completed
-                        </StatHelpText>
-                        <Progress value={taskStats.progress} size="sm" colorScheme="green" mt={2} />
-                      </Stat>
-                    </CardBody>
-                  </Card>
-                  <Card bg={bg}>
-                    <CardBody>
-                      <Stat>
-                        <StatLabel>Active Tasks</StatLabel>
-                        <StatNumber>{taskStats.total - taskStats.completed}</StatNumber>
-                        <StatHelpText>
-                          {taskStats.high} high priority
-                        </StatHelpText>
-                        <Progress value={(taskStats.high / taskStats.total) * 100} size="sm" colorScheme="red" mt={2} />
-                      </Stat>
-                    </CardBody>
-                  </Card>
-                  <Card bg={bg}>
-                    <CardBody>
-                      <Stat>
-                        <StatLabel>Completion Rate</StatLabel>
-                        <StatNumber>{taskStats.progress.toFixed(1)}%</StatNumber>
-                        <StatHelpText>
-                          Overall progress
-                        </StatHelpText>
-                        <Progress value={taskStats.progress} size="sm" colorScheme="blue" mt={2} />
-                      </Stat>
-                    </CardBody>
-                  </Card>
-                </SimpleGrid>
-              </Box>
+    <div className="container mx-auto max-w-6xl space-y-8">
+      {/* Header */}
+      <div className="space-y-4">
+        <h1 className="text-4xl font-bold text-foreground">Tasks</h1>
+        <p className="text-muted-foreground">
+          Organize and track your tasks efficiently
+        </p>
+      </div>
 
-              <Box p={6} bg={bg} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-                <VStack spacing={4}>
-                  <HStack w="100%" spacing={4}>
-                    <Input
-                      placeholder="Search tasks..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      flex={1}
-                    />
-                    <Input
-                      placeholder="Add a new task..."
-                      value={newTaskTitle}
-                      onChange={(e) => setNewTaskTitle(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          handleAddTask();
-                        }
-                      }}
-                      flex={2}
-                    />
-                    <IconButton
-                      icon={<FaPlus />}
-                      onClick={handleAddTask}
-                      colorScheme="blue"
-                      aria-label="Add task"
-                    />
-                  </HStack>
-
-                  <Tabs w="100%" isFitted variant="enclosed" index={selectedTab} onChange={setSelectedTab}>
-                    <TabList mb="1em">
-                      <Tab>All ({tasks.length})</Tab>
-                      <Tab>Active ({tasks.filter(t => !t.completed).length})</Tab>
-                      <Tab>Completed ({tasks.filter(t => t.completed).length})</Tab>
-                    </TabList>
-
-                    <TabPanels>
-                      <TabPanel p={0}>
-                        <List spacing={3} w="100%">
-                          {filteredTasks.map((task) => (
-                            <MotionListItem
-                              key={task.id}
-                              layout
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -20 }}
-                              transition={{ duration: 0.2 }}
-                            >
-                              <Card
-                                bg={cardBg}
-                                _hover={{ shadow: 'md', transform: 'translateY(-2px)' }}
-                                transition="all 0.2s"
-                              >
-                                <CardBody>
-                                  <VStack align="stretch" spacing={2}>
-                                    <HStack justify="space-between">
-                                      <HStack flex={1} spacing={4}>
-                                        <Checkbox
-                                          isChecked={task.completed}
-                                          onChange={() => handleToggleTask(task.id)}
-                                          size="lg"
-                                        />
-                                        <VStack align="start" spacing={1}>
-                                          <HStack>
-                                            <Text
-                                              fontSize="lg"
-                                              fontWeight="medium"
-                                              textDecoration={
-                                                task.completed ? 'line-through' : 'none'
-                                              }
-                                              color={task.completed ? mutedColor : textColor}
-                                            >
-                                              {task.title}
-                                            </Text>
-                                            <Tag
-                                              size="sm"
-                                              variant="subtle"
-                                              colorScheme={getPriorityColor(task.priority)}
-                                            >
-                                              <TagLeftIcon as={getPriorityIcon(task.priority)} />
-                                              <TagLabel>{task.priority}</TagLabel>
-                                            </Tag>
-                                          </HStack>
-                                          {task.dueDate && (
-                                            <HStack fontSize="sm" color={mutedColor}>
-                                              <FaCalendarAlt />
-                                              <Text>Due: {new Date(task.dueDate).toLocaleDateString()}</Text>
-                                            </HStack>
-                                          )}
-                                        </VStack>
-                                      </HStack>
-                                      <HStack>
-                                        <IconButton
-                                          icon={expandedTask === task.id ? <FaChevronUp /> : <FaChevronDown />}
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleExpandTask(task.id)}
-                                          aria-label="Toggle details"
-                                        />
-                                        <Menu>
-                                          <MenuButton
-                                            as={IconButton}
-                                            icon={<FaEllipsisV />}
-                                            variant="ghost"
-                                            size="sm"
-                                          />
-                                          <MenuList>
-                                            <MenuItem
-                                              icon={<FaEdit />}
-                                              onClick={() => handleEditTask(task)}
-                                            >
-                                              Edit
-                                            </MenuItem>
-                                            <MenuItem
-                                              icon={<FaTrash />}
-                                              onClick={() => {
-                                                setTaskToDelete(task);
-                                                onAlertOpen();
-                                              }}
-                                              color="red.500"
-                                            >
-                                              Delete
-                                            </MenuItem>
-                                          </MenuList>
-                                        </Menu>
-                                      </HStack>
-                                    </HStack>
-
-                                    <Collapse in={expandedTask === task.id}>
-                                      <VStack align="stretch" mt={4} spacing={3}>
-                                        <Divider />
-                                        {task.notes && (
-                                          <Text fontSize="sm" color={mutedColor}>
-                                            {task.notes}
-                                          </Text>
-                                        )}
-                                        <HStack fontSize="sm" color={mutedColor} spacing={4}>
-                                          <HStack>
-                                            <FaClock />
-                                            <Text>Created: {new Date(task.createdAt).toLocaleDateString()}</Text>
-                                          </HStack>
-                                          {task.completed && (
-                                            <Tag colorScheme="green" size="sm">
-                                              <TagLeftIcon as={FaCheckCircle} />
-                                              <TagLabel>Completed</TagLabel>
-                                            </Tag>
-                                          )}
-                                        </HStack>
-                                      </VStack>
-                                    </Collapse>
-                                  </VStack>
-                                </CardBody>
-                              </Card>
-                            </MotionListItem>
-                          ))}
-                        </List>
-                      </TabPanel>
-                      <TabPanel p={0}>
-                        <List spacing={3} w="100%">
-                          {filteredTasks.map((task) => (
-                            <MotionListItem
-                              key={task.id}
-                              layout
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -20 }}
-                              transition={{ duration: 0.2 }}
-                            >
-                              <Card
-                                bg={cardBg}
-                                _hover={{ shadow: 'md', transform: 'translateY(-2px)' }}
-                                transition="all 0.2s"
-                              >
-                                <CardBody>
-                                  <VStack align="stretch" spacing={2}>
-                                    <HStack justify="space-between">
-                                      <HStack flex={1} spacing={4}>
-                                        <Checkbox
-                                          isChecked={task.completed}
-                                          onChange={() => handleToggleTask(task.id)}
-                                          size="lg"
-                                        />
-                                        <VStack align="start" spacing={1}>
-                                          <HStack>
-                                            <Text
-                                              fontSize="lg"
-                                              fontWeight="medium"
-                                              textDecoration={
-                                                task.completed ? 'line-through' : 'none'
-                                              }
-                                              color={task.completed ? mutedColor : textColor}
-                                            >
-                                              {task.title}
-                                            </Text>
-                                            <Tag
-                                              size="sm"
-                                              variant="subtle"
-                                              colorScheme={getPriorityColor(task.priority)}
-                                            >
-                                              <TagLeftIcon as={getPriorityIcon(task.priority)} />
-                                              <TagLabel>{task.priority}</TagLabel>
-                                            </Tag>
-                                          </HStack>
-                                          {task.dueDate && (
-                                            <HStack fontSize="sm" color={mutedColor}>
-                                              <FaCalendarAlt />
-                                              <Text>Due: {new Date(task.dueDate).toLocaleDateString()}</Text>
-                                            </HStack>
-                                          )}
-                                        </VStack>
-                                      </HStack>
-                                      <HStack>
-                                        <IconButton
-                                          icon={expandedTask === task.id ? <FaChevronUp /> : <FaChevronDown />}
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleExpandTask(task.id)}
-                                          aria-label="Toggle details"
-                                        />
-                                        <Menu>
-                                          <MenuButton
-                                            as={IconButton}
-                                            icon={<FaEllipsisV />}
-                                            variant="ghost"
-                                            size="sm"
-                                          />
-                                          <MenuList>
-                                            <MenuItem
-                                              icon={<FaEdit />}
-                                              onClick={() => handleEditTask(task)}
-                                            >
-                                              Edit
-                                            </MenuItem>
-                                            <MenuItem
-                                              icon={<FaTrash />}
-                                              onClick={() => {
-                                                setTaskToDelete(task);
-                                                onAlertOpen();
-                                              }}
-                                              color="red.500"
-                                            >
-                                              Delete
-                                            </MenuItem>
-                                          </MenuList>
-                                        </Menu>
-                                      </HStack>
-                                    </HStack>
-
-                                    <Collapse in={expandedTask === task.id}>
-                                      <VStack align="stretch" mt={4} spacing={3}>
-                                        <Divider />
-                                        {task.notes && (
-                                          <Text fontSize="sm" color={mutedColor}>
-                                            {task.notes}
-                                          </Text>
-                                        )}
-                                        <HStack fontSize="sm" color={mutedColor} spacing={4}>
-                                          <HStack>
-                                            <FaClock />
-                                            <Text>Created: {new Date(task.createdAt).toLocaleDateString()}</Text>
-                                          </HStack>
-                                          {task.completed && (
-                                            <Tag colorScheme="green" size="sm">
-                                              <TagLeftIcon as={FaCheckCircle} />
-                                              <TagLabel>Completed</TagLabel>
-                                            </Tag>
-                                          )}
-                                        </HStack>
-                                      </VStack>
-                                    </Collapse>
-                                  </VStack>
-                                </CardBody>
-                              </Card>
-                            </MotionListItem>
-                          ))}
-                        </List>
-                      </TabPanel>
-                      <TabPanel p={0}>
-                        <List spacing={3} w="100%">
-                          {filteredTasks.map((task) => (
-                            <MotionListItem
-                              key={task.id}
-                              layout
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -20 }}
-                              transition={{ duration: 0.2 }}
-                            >
-                              <Card
-                                bg={cardBg}
-                                _hover={{ shadow: 'md', transform: 'translateY(-2px)' }}
-                                transition="all 0.2s"
-                              >
-                                <CardBody>
-                                  <VStack align="stretch" spacing={2}>
-                                    <HStack justify="space-between">
-                                      <HStack flex={1} spacing={4}>
-                                        <Checkbox
-                                          isChecked={task.completed}
-                                          onChange={() => handleToggleTask(task.id)}
-                                          size="lg"
-                                        />
-                                        <VStack align="start" spacing={1}>
-                                          <HStack>
-                                            <Text
-                                              fontSize="lg"
-                                              fontWeight="medium"
-                                              textDecoration={
-                                                task.completed ? 'line-through' : 'none'
-                                              }
-                                              color={task.completed ? mutedColor : textColor}
-                                            >
-                                              {task.title}
-                                            </Text>
-                                            <Tag
-                                              size="sm"
-                                              variant="subtle"
-                                              colorScheme={getPriorityColor(task.priority)}
-                                            >
-                                              <TagLeftIcon as={getPriorityIcon(task.priority)} />
-                                              <TagLabel>{task.priority}</TagLabel>
-                                            </Tag>
-                                          </HStack>
-                                          {task.dueDate && (
-                                            <HStack fontSize="sm" color={mutedColor}>
-                                              <FaCalendarAlt />
-                                              <Text>Due: {new Date(task.dueDate).toLocaleDateString()}</Text>
-                                            </HStack>
-                                          )}
-                                        </VStack>
-                                      </HStack>
-                                      <HStack>
-                                        <IconButton
-                                          icon={expandedTask === task.id ? <FaChevronUp /> : <FaChevronDown />}
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleExpandTask(task.id)}
-                                          aria-label="Toggle details"
-                                        />
-                                        <Menu>
-                                          <MenuButton
-                                            as={IconButton}
-                                            icon={<FaEllipsisV />}
-                                            variant="ghost"
-                                            size="sm"
-                                          />
-                                          <MenuList>
-                                            <MenuItem
-                                              icon={<FaEdit />}
-                                              onClick={() => handleEditTask(task)}
-                                            >
-                                              Edit
-                                            </MenuItem>
-                                            <MenuItem
-                                              icon={<FaTrash />}
-                                              onClick={() => {
-                                                setTaskToDelete(task);
-                                                onAlertOpen();
-                                              }}
-                                              color="red.500"
-                                            >
-                                              Delete
-                                            </MenuItem>
-                                          </MenuList>
-                                        </Menu>
-                                      </HStack>
-                                    </HStack>
-
-                                    <Collapse in={expandedTask === task.id}>
-                                      <VStack align="stretch" mt={4} spacing={3}>
-                                        <Divider />
-                                        {task.notes && (
-                                          <Text fontSize="sm" color={mutedColor}>
-                                            {task.notes}
-                                          </Text>
-                                        )}
-                                        <HStack fontSize="sm" color={mutedColor} spacing={4}>
-                                          <HStack>
-                                            <FaClock />
-                                            <Text>Created: {new Date(task.createdAt).toLocaleDateString()}</Text>
-                                          </HStack>
-                                          {task.completed && (
-                                            <Tag colorScheme="green" size="sm">
-                                              <TagLeftIcon as={FaCheckCircle} />
-                                              <TagLabel>Completed</TagLabel>
-                                            </Tag>
-                                          )}
-                                        </HStack>
-                                      </VStack>
-                                    </Collapse>
-                                  </VStack>
-                                </CardBody>
-                              </Card>
-                            </MotionListItem>
-                          ))}
-                        </List>
-                      </TabPanel>
-                    </TabPanels>
-                  </Tabs>
-                </VStack>
-              </Box>
-            </VStack>
-          </CardBody>
-          <CardFooter>
-            <Text fontSize="sm" color="gray.500">Tip: Use filters and tags to stay productive!</Text>
-          </CardFooter>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-foreground">{taskCounts.total}</p>
+              <p className="text-sm text-muted-foreground">Total</p>
+            </div>
+          </CardContent>
         </Card>
-      </Box>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-blue-600">{taskCounts.active}</p>
+              <p className="text-sm text-muted-foreground">Active</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-green-600">{taskCounts.completed}</p>
+              <p className="text-sm text-muted-foreground">Completed</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-red-600">{taskCounts.overdue}</p>
+              <p className="text-sm text-muted-foreground">Overdue</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-      <Drawer
-        isOpen={isDrawerOpen}
-        placement={isMobile ? "bottom" : "right"}
-        onClose={onDrawerClose}
-        size={isMobile ? "full" : "md"}
-      >
-        <DrawerOverlay />
-        <DrawerContent>
-          <DrawerCloseButton />
-          <DrawerHeader>
-            <HStack>
-              <FaEdit />
-              <Text>Edit Task</Text>
-            </HStack>
-          </DrawerHeader>
+      {/* Controls */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between">
+        <div className="flex flex-col sm:flex-row gap-4 flex-1">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search tasks..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Tabs value={selectedFilter} onValueChange={setSelectedFilter} className="w-full sm:w-auto">
+            <TabsList>
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="active">Active</TabsTrigger>
+              <TabsTrigger value="completed">Completed</TabsTrigger>
+              <TabsTrigger value="overdue">Overdue</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+        
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Task
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Task</DialogTitle>
+            </DialogHeader>
+            <TaskForm
+              task={newTask}
+              setTask={setNewTask}
+              onSave={addTask}
+              onCancel={() => setIsAddDialogOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
 
-          <DrawerBody>
-            <VStack spacing={6}>
-              <FormControl>
-                <FormLabel>Title</FormLabel>
-                <Input
-                  value={editingTask?.title || ''}
-                  onChange={(e) =>
-                    setEditingTask(prev => ({ ...prev, title: e.target.value }))
-                  }
-                  placeholder="Task title"
-                />
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>Priority</FormLabel>
-                <Select
-                  value={editingTask?.priority || 'medium'}
-                  onChange={(e) =>
-                    setEditingTask(prev => ({ ...prev, priority: e.target.value }))
-                  }
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </Select>
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>Due Date</FormLabel>
-                <Input
-                  type="date"
-                  value={editingTask?.dueDate || ''}
-                  onChange={(e) =>
-                    setEditingTask(prev => ({ ...prev, dueDate: e.target.value }))
-                  }
-                />
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>Notes</FormLabel>
-                <Textarea
-                  value={editingTask?.notes || ''}
-                  onChange={(e) =>
-                    setEditingTask(prev => ({ ...prev, notes: e.target.value }))
-                  }
-                  placeholder="Add any additional notes here..."
-                  rows={4}
-                />
-              </FormControl>
-
-              <Button
-                colorScheme="blue"
-                onClick={handleUpdateTask}
-                w="100%"
-                leftIcon={<FaEdit />}
-              >
-                Update Task
-              </Button>
-            </VStack>
-          </DrawerBody>
-        </DrawerContent>
-      </Drawer>
-
-      <AlertDialog
-        isOpen={isAlertOpen}
-        leastDestructiveRef={cancelRef}
-        onClose={onAlertClose}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Task
-            </AlertDialogHeader>
-
-            <AlertDialogBody>
-              Are you sure you want to delete this task? This action cannot be undone.
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onAlertClose}>
-                Cancel
-              </Button>
-              <Button colorScheme="red" onClick={handleDeleteConfirm} ml={3}>
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
-    </>
+      {/* Task List */}
+      <div className="space-y-4">
+        {filteredTasks.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <div className="text-muted-foreground">
+                {searchTerm || selectedFilter !== 'all' 
+                  ? 'No tasks match your criteria' 
+                  : 'No tasks yet. Create your first task to get started!'}
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredTasks.map(task => (
+            <Card 
+              key={task.id} 
+              className={`border-l-4 ${getPriorityColor(task.priority)} ${task.completed ? 'opacity-60' : ''}`}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start space-x-4">
+                  <Checkbox
+                    checked={task.completed}
+                    onCheckedChange={(checked) => toggleTaskComplete(task.id, checked)}
+                    className="mt-1"
+                  />
+                  
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <h3 className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                        {task.title}
+                      </h3>
+                      {getPriorityIcon(task.priority)}
+                      {task.dueDate && isOverdue(task.dueDate) && (
+                        <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                          Overdue
+                        </span>
+                      )}
+                    </div>
+                    
+                    {task.description && (
+                      <p className={`text-sm ${task.completed ? 'line-through text-muted-foreground' : 'text-muted-foreground'}`}>
+                        {task.description}
+                      </p>
+                    )}
+                    
+                    <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                      {task.dueDate && (
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>{new Date(task.dueDate).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                      {task.category && (
+                        <span className="bg-muted px-2 py-1 rounded">
+                          {task.category}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex space-x-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => startEditTask(task)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Edit Task</DialogTitle>
+                        </DialogHeader>
+                        <TaskForm
+                          task={newTask}
+                          setTask={setNewTask}
+                          onSave={saveEditTask}
+                          onCancel={() => setEditingTask(null)}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteTask(task.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+    </div>
   );
 }
 
-export default function TasksPageWithErrorBoundary() {
+function TaskForm({ task, setTask, onSave, onCancel }) {
   return (
-    <ErrorBoundary
-      FallbackComponent={ErrorFallback}
-      onReset={() => {
-        // Reset the state here
-        window.location.reload();
-      }}
-    >
-      <TasksPage />
-    </ErrorBoundary>
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Title</label>
+        <Input
+          placeholder="Task title..."
+          value={task.title}
+          onChange={(e) => setTask(prev => ({ ...prev, title: e.target.value }))}
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Description</label>
+        <Input
+          placeholder="Task description..."
+          value={task.description}
+          onChange={(e) => setTask(prev => ({ ...prev, description: e.target.value }))}
+        />
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Priority</label>
+          <select
+            value={task.priority}
+            onChange={(e) => setTask(prev => ({ ...prev, priority: e.target.value }))}
+            className="w-full p-2 border rounded-md bg-background"
+          >
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+        
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Category</label>
+          <select
+            value={task.category}
+            onChange={(e) => setTask(prev => ({ ...prev, category: e.target.value }))}
+            className="w-full p-2 border rounded-md bg-background"
+          >
+            <option value="personal">Personal</option>
+            <option value="work">Work</option>
+            <option value="health">Health</option>
+            <option value="learning">Learning</option>
+          </select>
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Due Date</label>
+        <Input
+          type="date"
+          value={task.dueDate}
+          onChange={(e) => setTask(prev => ({ ...prev, dueDate: e.target.value }))}
+        />
+      </div>
+      
+      <div className="flex justify-end space-x-2">
+        <Button variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button onClick={onSave}>
+          Save Task
+        </Button>
+      </div>
+    </div>
   );
 }
+
+export default TasksPage;
